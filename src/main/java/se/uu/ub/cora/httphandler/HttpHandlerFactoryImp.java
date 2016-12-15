@@ -21,7 +21,6 @@ package se.uu.ub.cora.httphandler;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 
 public class HttpHandlerFactoryImp implements HttpHandlerFactory {
@@ -35,7 +34,7 @@ public class HttpHandlerFactoryImp implements HttpHandlerFactory {
 		}
 	}
 
-	private HttpHandler tryToFactor(String urlString) throws MalformedURLException, IOException {
+	private HttpHandler tryToFactor(String urlString) throws IOException {
 		URL url = new URL(urlString);
 		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
 		return HttpHandlerImp.usingURLConnection(urlConnection);
