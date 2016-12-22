@@ -19,17 +19,24 @@
 
 package se.uu.ub.cora.httphandler;
 
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
+import java.net.ProtocolException;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 public final class HttpMultiPartUploaderImp {
+
+	private static final int STATUS_INTERNAL_SERVER_ERROR = 500;
+	private HttpURLConnection urlConnection;
 
 	private static final String BOUNDARY = "xxxYYYxxx";
 	private static final String LINE_FEED = "\n";
@@ -39,27 +46,129 @@ public final class HttpMultiPartUploaderImp {
 
 	private HttpMultiPartUploaderImp(HttpURLConnection httpUrlConnection) {
 		try {
-			tryToCreateHttpMultiPartUploaderImp(httpUrlConnection);
+			this.urlConnection = httpUrlConnection;
+			this.urlConnection.setUseCaches(false);
+			this.urlConnection.setDoOutput(true);
+			this.urlConnection.setDoInput(true);
+			this.urlConnection.setRequestProperty("Content-Type",
+					"multipart/form-data; boundary=" + BOUNDARY);
+			this.urlConnection.setRequestProperty("User-Agent", "CodeJava Agent");
+
+			outputStream = this.urlConnection.getOutputStream();
+			writer = new PrintWriter(new OutputStreamWriter(outputStream, charset), true);
 		} catch (IOException e) {
 			throw new RuntimeException("Failed to upload multipart", e);
 		}
 	}
 
-	private void tryToCreateHttpMultiPartUploaderImp(HttpURLConnection httpUrlConnection)
-			throws IOException {
-		httpUrlConnection.setUseCaches(false);
-		httpUrlConnection.setDoOutput(true);
-		httpUrlConnection.setDoInput(true);
-		httpUrlConnection.setRequestProperty("Content-Type",
-				"multipart/form-data; boundary=" + BOUNDARY);
-		httpUrlConnection.setRequestProperty("User-Agent", "CodeJava Agent");
-
-		outputStream = httpUrlConnection.getOutputStream();
-		writer = new PrintWriter(new OutputStreamWriter(outputStream, charset), true);
-	}
-
 	public static HttpMultiPartUploaderImp usingURLConnection(HttpURLConnection httpUrlConnection) {
 		return new HttpMultiPartUploaderImp(httpUrlConnection);
+	}
+
+	// @Override
+	// public void setRequestMethod(String requestMetod) {
+	// try {
+	// tryToSetRequestMethod(requestMetod);
+	// } catch (Exception e) {
+	// throw new RuntimeException("Not an ok requestMethod: ", e);
+	// }
+	// }
+
+	private void tryToSetRequestMethod(String requestMetod) throws ProtocolException {
+		urlConnection.setRequestMethod(requestMetod);
+	}
+
+	// @Override
+	public String getResponseText() {
+		try {
+			return tryToGetResponseText();
+		} catch (Exception e) {
+			throw new RuntimeException("Error getting response text: ", e);
+		}
+	}
+
+	private String tryToGetResponseText() throws IOException {
+		InputStream inputStream = urlConnection.getInputStream();
+		return getTextFromInputStream(inputStream);
+	}
+
+	private String getTextFromInputStream(InputStream inputStream) throws IOException {
+		StringBuilder response = new StringBuilder();
+		BufferedReader in = new BufferedReader(
+				new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+		String inputLine;
+
+		while ((inputLine = in.readLine()) != null) {
+			response.append(inputLine);
+		}
+		in.close();
+		return response.toString();
+	}
+
+	// @Override
+	public int getResponseCode() {
+		try {
+			return urlConnection.getResponseCode();
+		} catch (IOException e) {
+			return STATUS_INTERNAL_SERVER_ERROR;
+		}
+	}
+
+	// @Override
+	public void setOutput(String outputString) {
+		try {
+			tryToSetOutput(outputString);
+		} catch (IOException e) {
+			throw new RuntimeException("Error writing output: ", e);
+		}
+	}
+
+	private void tryToSetOutput(String outputString) throws IOException {
+		urlConnection.setDoOutput(true);
+		DataOutputStream wr = new DataOutputStream(urlConnection.getOutputStream());
+		wr.writeBytes(outputString);
+		wr.flush();
+		wr.close();
+	}
+
+	// @Override
+	public void setRequestProperty(String key, String value) {
+		urlConnection.setRequestProperty(key, value);
+	}
+
+	// @Override
+	public String getErrorText() {
+		try {
+			return tryToGetErrorText();
+		} catch (Exception e) {
+			throw new RuntimeException("Error getting response text: ", e);
+		}
+	}
+
+	private String tryToGetErrorText() throws IOException {
+		InputStream inputStream = urlConnection.getErrorStream();
+		return getTextFromInputStream(inputStream);
+	}
+
+	// @Override
+	public void setStreamOutput(InputStream stream) {
+		try {
+			tryToSetStreamOutput(stream);
+		} catch (IOException e) {
+			throw new RuntimeException("Error writing output from stream: ", e);
+		}
+	}
+
+	private void tryToSetStreamOutput(InputStream stream) throws IOException {
+		urlConnection.setDoOutput(true);
+		DataOutputStream wr = new DataOutputStream(urlConnection.getOutputStream());
+		byte[] buffer = new byte[4096];
+		int n;
+		while ((n = stream.read(buffer)) > 0) {
+			wr.write(buffer, 0, n);
+		}
+		wr.flush();
+		wr.close();
 	}
 
 	public void addFormField(String name, String value) {
