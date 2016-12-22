@@ -19,6 +19,8 @@
 
 package se.uu.ub.cora.httphandler;
 
+import java.io.InputStream;
+
 public interface HttpHandler {
 
 	void setRequestMethod(String requestMetod);
@@ -26,5 +28,13 @@ public interface HttpHandler {
 	String getResponseText();
 
 	int getResponseCode();
+
+	void setOutput(String outputString);
+
+	void setRequestProperty(String key, String value);
+
+	String getErrorText();
+
+	void setStreamOutput(InputStream stream);
 
 }

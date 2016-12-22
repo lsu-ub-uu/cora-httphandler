@@ -20,12 +20,16 @@
 package se.uu.ub.cora.httphandler;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.ProtocolException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 public class HttpURLConnectionSpy extends HttpURLConnection {
 
@@ -34,6 +38,13 @@ public class HttpURLConnectionSpy extends HttpURLConnection {
 	private int responseCode = 200;
 
 	private String responseText;
+	public ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(999999999);
+
+	public boolean doOutput;
+
+	public Map<String, String> requestProperties = new HashMap<>();
+
+	private String errorText;
 
 	public HttpURLConnectionSpy(URL url) {
 		super(url);
@@ -78,5 +89,29 @@ public class HttpURLConnectionSpy extends HttpURLConnection {
 	@Override
 	public InputStream getInputStream() throws IOException {
 		return new ByteArrayInputStream(responseText.getBytes(StandardCharsets.UTF_8));
+	}
+
+	@Override
+	public OutputStream getOutputStream() throws IOException {
+		return byteArrayOutputStream;
+	}
+
+	@Override
+	public void setDoOutput(boolean dooutput) {
+		this.doOutput = dooutput;
+	}
+
+	@Override
+	public void setRequestProperty(String key, String value) {
+		requestProperties.put(key, value);
+	}
+
+	public void setErrorText(String errorText) {
+		this.errorText = errorText;
+	}
+
+	@Override
+	public InputStream getErrorStream() {
+		return new ByteArrayInputStream(errorText.getBytes(StandardCharsets.UTF_8));
 	}
 }

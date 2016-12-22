@@ -20,7 +20,9 @@
 package se.uu.ub.cora.httphandler;
 
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.ProtocolException;
@@ -62,9 +64,14 @@ public final class HttpHandlerImp implements HttpHandler {
 	}
 
 	private String tryToGetResponseText() throws IOException {
+		InputStream inputStream = urlConnection.getInputStream();
+		return getTextFromInputStream(inputStream);
+	}
+
+	private String getTextFromInputStream(InputStream inputStream) throws IOException {
 		StringBuilder response = new StringBuilder();
 		BufferedReader in = new BufferedReader(
-				new InputStreamReader(urlConnection.getInputStream(), StandardCharsets.UTF_8));
+				new InputStreamReader(inputStream, StandardCharsets.UTF_8));
 		String inputLine;
 
 		while ((inputLine = in.readLine()) != null) {
@@ -81,6 +88,63 @@ public final class HttpHandlerImp implements HttpHandler {
 		} catch (IOException e) {
 			return STATUS_INTERNAL_SERVER_ERROR;
 		}
+	}
+
+	@Override
+	public void setOutput(String outputString) {
+		try {
+			tryToSetOutput(outputString);
+		} catch (IOException e) {
+			throw new RuntimeException("Error writing output: ", e);
+		}
+	}
+
+	private void tryToSetOutput(String outputString) throws IOException {
+		urlConnection.setDoOutput(true);
+		DataOutputStream wr = new DataOutputStream(urlConnection.getOutputStream());
+		wr.writeBytes(outputString);
+		wr.flush();
+		wr.close();
+	}
+
+	@Override
+	public void setRequestProperty(String key, String value) {
+		urlConnection.setRequestProperty(key, value);
+	}
+
+	@Override
+	public String getErrorText() {
+		try {
+			return tryToGetErrorText();
+		} catch (Exception e) {
+			throw new RuntimeException("Error getting response text: ", e);
+		}
+	}
+
+	private String tryToGetErrorText() throws IOException {
+		InputStream inputStream = urlConnection.getErrorStream();
+		return getTextFromInputStream(inputStream);
+	}
+
+	@Override
+	public void setStreamOutput(InputStream stream) {
+		try {
+			tryToSetStreamOutput(stream);
+		} catch (IOException e) {
+			throw new RuntimeException("Error writing output from stream: ", e);
+		}
+	}
+
+	private void tryToSetStreamOutput(InputStream stream) throws IOException {
+		urlConnection.setDoOutput(true);
+		DataOutputStream wr = new DataOutputStream(urlConnection.getOutputStream());
+		byte[] buffer = new byte[4096];
+		int n;
+		while ((n = stream.read(buffer)) > 0) {
+			wr.write(buffer, 0, n);
+		}
+		wr.flush();
+		wr.close();
 	}
 
 }

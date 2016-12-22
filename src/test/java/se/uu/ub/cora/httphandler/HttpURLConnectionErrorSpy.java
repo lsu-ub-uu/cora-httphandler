@@ -21,6 +21,7 @@ package se.uu.ub.cora.httphandler;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.ProtocolException;
 import java.net.URL;
 
@@ -72,5 +73,15 @@ public class HttpURLConnectionErrorSpy extends HttpURLConnectionSpy {
 	@Override
 	public InputStream getInputStream() throws IOException {
 		throw new IOException("this is an ioException exception");
+	}
+
+	@Override
+	public OutputStream getOutputStream() throws IOException {
+		throw new IOException("this is an ioException exception");
+	}
+
+	@Override
+	public InputStream getErrorStream() {
+		return null;
 	}
 }
