@@ -38,7 +38,7 @@ public class HttpURLConnectionSpy extends HttpURLConnection {
 	private int responseCode = 200;
 
 	private String responseText;
-	public ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(999999999);
+	public ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(999);
 
 	public boolean doOutput;
 
