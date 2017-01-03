@@ -46,6 +46,8 @@ public class HttpURLConnectionSpy extends HttpURLConnection {
 
 	private String errorText;
 
+	private Map<String, String> headerFields = new HashMap<>();
+
 	public HttpURLConnectionSpy(URL url) {
 		super(url);
 	}
@@ -113,5 +115,14 @@ public class HttpURLConnectionSpy extends HttpURLConnection {
 	@Override
 	public InputStream getErrorStream() {
 		return new ByteArrayInputStream(errorText.getBytes(StandardCharsets.UTF_8));
+	}
+
+	public void setHeaderField(String key, String value) {
+		headerFields.put(key, value);
+	}
+
+	@Override
+	public String getHeaderField(String name) {
+		return headerFields.get(name);
 	}
 }

@@ -37,4 +37,6 @@ public interface HttpHandler {
 
 	void setStreamOutput(InputStream stream);
 
+	String getHeaderField(String name);
+
 }

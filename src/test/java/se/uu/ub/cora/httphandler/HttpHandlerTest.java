@@ -148,4 +148,21 @@ public class HttpHandlerTest {
 		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
 		httpHandler.setStreamOutput(stream);
 	}
+
+	@Test
+	public void testGetHeaderField() {
+		HttpURLConnectionSpy urlConnection = new HttpURLConnectionSpy(url);
+		HttpHandler httpHandler = HttpHandlerImp.usingURLConnection(urlConnection);
+
+		urlConnection.setHeaderField("someName", "someValue");
+		assertEquals(httpHandler.getHeaderField("someName"), "someValue");
+	}
+
+	@Test
+	public void testGetNotFoundHeaderField() {
+		HttpURLConnectionSpy urlConnection = new HttpURLConnectionSpy(url);
+		HttpHandler httpHandler = HttpHandlerImp.usingURLConnection(urlConnection);
+
+		assertEquals(httpHandler.getHeaderField("someOtherName"), null);
+	}
 }

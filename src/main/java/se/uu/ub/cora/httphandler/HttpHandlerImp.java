@@ -147,4 +147,9 @@ public final class HttpHandlerImp implements HttpHandler {
 		wr.close();
 	}
 
+	@Override
+	public String getHeaderField(String name) {
+		return urlConnection.getHeaderField(name);
+	}
+
 }
