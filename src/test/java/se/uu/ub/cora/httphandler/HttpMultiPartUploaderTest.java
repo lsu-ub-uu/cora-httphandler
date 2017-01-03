@@ -74,4 +74,59 @@ public class HttpMultiPartUploaderTest {
 		HttpMultiPartUploaderImp.usingURLConnection(urlConnection);
 	}
 
+	@Test
+	public void testGetResponseCode() {
+		HttpURLConnectionSpy urlConnection = new HttpURLConnectionSpy(url);
+		HttpMultiPartUploaderImp httpHandler = HttpMultiPartUploaderImp
+				.usingURLConnection(urlConnection);
+
+		urlConnection.setResponseCode(200);
+		assertEquals(httpHandler.getResponseCode(), 200);
+	}
+
+	@Test
+	public void testGetBrokenResponseCode() {
+		HttpURLConnectionSpy urlConnection = new HttpURLConnectionPartlyErrorSpy(url);
+		HttpMultiPartUploaderImp httpHandler = HttpMultiPartUploaderImp
+				.usingURLConnection(urlConnection);
+		assertEquals(httpHandler.getResponseCode(), 500);
+	}
+
+	@Test
+	public void testGetResponseText() {
+		HttpURLConnectionSpy urlConnection = new HttpURLConnectionSpy(url);
+		HttpMultiPartUploaderImp httpHandler = HttpMultiPartUploaderImp
+				.usingURLConnection(urlConnection);
+
+		urlConnection.setResponseText("some text");
+		assertEquals(httpHandler.getResponseText(), "some text");
+	}
+
+	@Test(expectedExceptions = RuntimeException.class)
+	public void testGetBrokenResponseText() {
+		HttpURLConnectionSpy urlConnection = new HttpURLConnectionPartlyErrorSpy(url);
+		HttpMultiPartUploaderImp httpHandler = HttpMultiPartUploaderImp
+				.usingURLConnection(urlConnection);
+
+		httpHandler.getResponseText();
+	}
+
+	@Test
+	public void testGetErrorText() {
+		HttpURLConnectionSpy urlConnection = new HttpURLConnectionSpy(url);
+		HttpMultiPartUploaderImp httpHandler = HttpMultiPartUploaderImp
+				.usingURLConnection(urlConnection);
+
+		urlConnection.setErrorText("some text");
+		assertEquals(httpHandler.getErrorText(), "some text");
+	}
+
+	@Test(expectedExceptions = RuntimeException.class)
+	public void testGetErrorTextBroken() {
+		HttpURLConnectionSpy urlConnection = new HttpURLConnectionPartlyErrorSpy(url);
+		HttpMultiPartUploaderImp httpHandler = HttpMultiPartUploaderImp
+				.usingURLConnection(urlConnection);
+
+		assertEquals(httpHandler.getErrorText(), "some text");
+	}
 }

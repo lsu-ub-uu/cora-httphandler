@@ -30,6 +30,7 @@ import java.nio.charset.StandardCharsets;
 
 public final class HttpHandlerImp implements HttpHandler {
 
+	private static final int INITIAL_BUFFER_SIZE = 4096;
 	private static final int STATUS_INTERNAL_SERVER_ERROR = 500;
 	private HttpURLConnection urlConnection;
 
@@ -138,7 +139,7 @@ public final class HttpHandlerImp implements HttpHandler {
 	private void tryToSetStreamOutput(InputStream stream) throws IOException {
 		urlConnection.setDoOutput(true);
 		DataOutputStream wr = new DataOutputStream(urlConnection.getOutputStream());
-		byte[] buffer = new byte[4096];
+		byte[] buffer = new byte[INITIAL_BUFFER_SIZE];
 		int n;
 		while ((n = stream.read(buffer)) > 0) {
 			wr.write(buffer, 0, n);

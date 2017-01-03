@@ -20,7 +20,6 @@
 package se.uu.ub.cora.httphandler;
 
 import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -28,13 +27,13 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
-import java.net.ProtocolException;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 public final class HttpMultiPartUploaderImp {
 
+	private static final int INITIAL_BUFFER_SIZE = 4096;
 	private static final int STATUS_INTERNAL_SERVER_ERROR = 500;
 	private HttpURLConnection urlConnection;
 
@@ -65,20 +64,6 @@ public final class HttpMultiPartUploaderImp {
 		return new HttpMultiPartUploaderImp(httpUrlConnection);
 	}
 
-	// @Override
-	// public void setRequestMethod(String requestMetod) {
-	// try {
-	// tryToSetRequestMethod(requestMetod);
-	// } catch (Exception e) {
-	// throw new RuntimeException("Not an ok requestMethod: ", e);
-	// }
-	// }
-
-	private void tryToSetRequestMethod(String requestMetod) throws ProtocolException {
-		urlConnection.setRequestMethod(requestMetod);
-	}
-
-	// @Override
 	public String getResponseText() {
 		try {
 			return tryToGetResponseText();
@@ -105,7 +90,6 @@ public final class HttpMultiPartUploaderImp {
 		return response.toString();
 	}
 
-	// @Override
 	public int getResponseCode() {
 		try {
 			return urlConnection.getResponseCode();
@@ -114,29 +98,6 @@ public final class HttpMultiPartUploaderImp {
 		}
 	}
 
-	// @Override
-	public void setOutput(String outputString) {
-		try {
-			tryToSetOutput(outputString);
-		} catch (IOException e) {
-			throw new RuntimeException("Error writing output: ", e);
-		}
-	}
-
-	private void tryToSetOutput(String outputString) throws IOException {
-		urlConnection.setDoOutput(true);
-		DataOutputStream wr = new DataOutputStream(urlConnection.getOutputStream());
-		wr.writeBytes(outputString);
-		wr.flush();
-		wr.close();
-	}
-
-	// @Override
-	public void setRequestProperty(String key, String value) {
-		urlConnection.setRequestProperty(key, value);
-	}
-
-	// @Override
 	public String getErrorText() {
 		try {
 			return tryToGetErrorText();
@@ -148,27 +109,6 @@ public final class HttpMultiPartUploaderImp {
 	private String tryToGetErrorText() throws IOException {
 		InputStream inputStream = urlConnection.getErrorStream();
 		return getTextFromInputStream(inputStream);
-	}
-
-	// @Override
-	public void setStreamOutput(InputStream stream) {
-		try {
-			tryToSetStreamOutput(stream);
-		} catch (IOException e) {
-			throw new RuntimeException("Error writing output from stream: ", e);
-		}
-	}
-
-	private void tryToSetStreamOutput(InputStream stream) throws IOException {
-		urlConnection.setDoOutput(true);
-		DataOutputStream wr = new DataOutputStream(urlConnection.getOutputStream());
-		byte[] buffer = new byte[4096];
-		int n;
-		while ((n = stream.read(buffer)) > 0) {
-			wr.write(buffer, 0, n);
-		}
-		wr.flush();
-		wr.close();
 	}
 
 	public void addFormField(String name, String value) {
@@ -191,7 +131,7 @@ public final class HttpMultiPartUploaderImp {
 		writer.append(LINE_FEED);
 		writer.flush();
 
-		byte[] buffer = new byte[4096];
+		byte[] buffer = new byte[INITIAL_BUFFER_SIZE];
 		int bytesRead;
 		while ((bytesRead = stream.read(buffer)) != -1) {
 			outputStream.write(buffer, 0, bytesRead);
