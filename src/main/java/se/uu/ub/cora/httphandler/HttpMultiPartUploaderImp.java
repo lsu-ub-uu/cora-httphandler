@@ -33,6 +33,8 @@ import java.nio.charset.StandardCharsets;
 
 public final class HttpMultiPartUploaderImp {
 
+	private static final String CONTENT_DISPOSITION = "Content-Disposition";
+	private static final String CONTENT_TYPE = "Content-Type";
 	private static final int INITIAL_BUFFER_SIZE = 4096;
 	private static final int STATUS_INTERNAL_SERVER_ERROR = 500;
 	private HttpURLConnection urlConnection;
@@ -46,18 +48,30 @@ public final class HttpMultiPartUploaderImp {
 	private HttpMultiPartUploaderImp(HttpURLConnection httpUrlConnection) {
 		try {
 			this.urlConnection = httpUrlConnection;
-			this.urlConnection.setUseCaches(false);
-			this.urlConnection.setDoOutput(true);
-			this.urlConnection.setDoInput(true);
-			this.urlConnection.setRequestProperty("Content-Type",
-					"multipart/form-data; boundary=" + BOUNDARY);
-			this.urlConnection.setRequestProperty("User-Agent", "CodeJava Agent");
-
-			outputStream = this.urlConnection.getOutputStream();
-			writer = new PrintWriter(new OutputStreamWriter(outputStream, charset), true);
+			tryToSetUpUrlConnectionAndCreateWriter();
 		} catch (IOException e) {
 			throw new RuntimeException("Failed to upload multipart", e);
 		}
+	}
+
+	private void tryToSetUpUrlConnectionAndCreateWriter() throws IOException {
+		setUpUrlConnection();
+
+		createWriter();
+	}
+
+	private void setUpUrlConnection() {
+		this.urlConnection.setUseCaches(false);
+		this.urlConnection.setDoOutput(true);
+		this.urlConnection.setDoInput(true);
+		this.urlConnection.setRequestProperty(CONTENT_TYPE,
+				"multipart/form-data; boundary=" + BOUNDARY);
+		this.urlConnection.setRequestProperty("User-Agent", "CodeJava Agent");
+	}
+
+	private void createWriter() throws IOException {
+		outputStream = this.urlConnection.getOutputStream();
+		writer = new PrintWriter(new OutputStreamWriter(outputStream, charset), true);
 	}
 
 	public static HttpMultiPartUploaderImp usingURLConnection(HttpURLConnection httpUrlConnection) {
@@ -78,16 +92,16 @@ public final class HttpMultiPartUploaderImp {
 	}
 
 	private String getTextFromInputStream(InputStream inputStream) throws IOException {
-		StringBuilder response = new StringBuilder();
+		StringBuilder text = new StringBuilder();
 		BufferedReader in = new BufferedReader(
 				new InputStreamReader(inputStream, StandardCharsets.UTF_8));
 		String inputLine;
 
 		while ((inputLine = in.readLine()) != null) {
-			response.append(inputLine);
+			text.append(inputLine);
 		}
 		in.close();
-		return response.toString();
+		return text.toString();
 	}
 
 	public int getResponseCode() {
@@ -112,25 +126,37 @@ public final class HttpMultiPartUploaderImp {
 	}
 
 	public void addFormField(String name, String value) {
-		writer.append("--" + BOUNDARY).append(LINE_FEED);
-		writer.append("Content-Disposition: form-data; name=\"" + name + "\"").append(LINE_FEED);
-		writer.append("Content-Type: text/plain; charset=" + charset).append(LINE_FEED);
+		appendBoundaryToWriter();
+		writer.append(CONTENT_DISPOSITION + ": form-data; name=\"" + name + "\"").append(LINE_FEED);
+		writer.append(CONTENT_TYPE + ":" + " text/plain; charset=" + charset).append(LINE_FEED);
 		writer.append(LINE_FEED);
 		writer.append(value).append(LINE_FEED);
 		writer.flush();
 	}
 
+	private PrintWriter appendBoundaryToWriter() {
+		return writer.append("--" + BOUNDARY).append(LINE_FEED);
+	}
+
 	public void addFilePart(String fieldName, String fileName, InputStream stream)
 			throws IOException {
-		writer.append("--" + BOUNDARY).append(LINE_FEED);
-		writer.append("Content-Disposition: form-data; name=\"" + fieldName + "\"; filename=\""
+		addFileInfo(fieldName, fileName);
+		streamData(stream);
+		writer.flush();
+	}
+
+	private void addFileInfo(String fieldName, String fileName) {
+		appendBoundaryToWriter();
+		writer.append(CONTENT_DISPOSITION + ": form-data; name=\"" + fieldName + "\"; filename=\""
 				+ fileName + "\"").append(LINE_FEED);
-		writer.append("Content-Type: " + URLConnection.guessContentTypeFromName(fileName))
+		writer.append(CONTENT_TYPE + ": " + URLConnection.guessContentTypeFromName(fileName))
 				.append(LINE_FEED);
 		writer.append("Content-Transfer-Encoding: binary").append(LINE_FEED);
 		writer.append(LINE_FEED);
 		writer.flush();
+	}
 
+	private void streamData(InputStream stream) throws IOException {
 		byte[] buffer = new byte[INITIAL_BUFFER_SIZE];
 		int bytesRead;
 		while ((bytesRead = stream.read(buffer)) != -1) {
@@ -138,11 +164,14 @@ public final class HttpMultiPartUploaderImp {
 		}
 		outputStream.flush();
 		stream.close();
-		writer.flush();
 	}
 
 	public void addHeaderField(String name, String value) {
-		writer.append(name + ": " + value).append(LINE_FEED);
+		addField(name, value);
+	}
+
+	private void addField(String name, String value) {
+		writer.append(name).append(": ").append(value).append(LINE_FEED);
 		writer.flush();
 	}
 
