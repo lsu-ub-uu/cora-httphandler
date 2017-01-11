@@ -42,7 +42,7 @@ public class HttpMultiPartUploaderTest {
 	@Test
 	public void testSetStreamOutput() throws IOException {
 		HttpURLConnectionSpy urlConnection = new HttpURLConnectionSpy(url);
-		HttpMultiPartUploaderImp httpHandler = HttpMultiPartUploaderImp
+		HttpMultiPartUploader httpHandler = HttpMultiPartUploaderImp
 				.usingURLConnection(urlConnection);
 		httpHandler.addHeaderField("Accept", "application/uub+record+json2");
 		httpHandler.addFormField("some", "value");
@@ -77,7 +77,7 @@ public class HttpMultiPartUploaderTest {
 	@Test
 	public void testGetResponseCode() {
 		HttpURLConnectionSpy urlConnection = new HttpURLConnectionSpy(url);
-		HttpMultiPartUploaderImp httpHandler = HttpMultiPartUploaderImp
+		HttpMultiPartUploader httpHandler = HttpMultiPartUploaderImp
 				.usingURLConnection(urlConnection);
 
 		urlConnection.setResponseCode(200);
@@ -87,7 +87,7 @@ public class HttpMultiPartUploaderTest {
 	@Test
 	public void testGetBrokenResponseCode() {
 		HttpURLConnectionSpy urlConnection = new HttpURLConnectionPartlyErrorSpy(url);
-		HttpMultiPartUploaderImp httpHandler = HttpMultiPartUploaderImp
+		HttpMultiPartUploader httpHandler = HttpMultiPartUploaderImp
 				.usingURLConnection(urlConnection);
 		assertEquals(httpHandler.getResponseCode(), 500);
 	}
@@ -95,7 +95,7 @@ public class HttpMultiPartUploaderTest {
 	@Test
 	public void testGetResponseText() {
 		HttpURLConnectionSpy urlConnection = new HttpURLConnectionSpy(url);
-		HttpMultiPartUploaderImp httpHandler = HttpMultiPartUploaderImp
+		HttpMultiPartUploader httpHandler = HttpMultiPartUploaderImp
 				.usingURLConnection(urlConnection);
 
 		urlConnection.setResponseText("some text");
@@ -105,7 +105,7 @@ public class HttpMultiPartUploaderTest {
 	@Test(expectedExceptions = RuntimeException.class)
 	public void testGetBrokenResponseText() {
 		HttpURLConnectionSpy urlConnection = new HttpURLConnectionPartlyErrorSpy(url);
-		HttpMultiPartUploaderImp httpHandler = HttpMultiPartUploaderImp
+		HttpMultiPartUploader httpHandler = HttpMultiPartUploaderImp
 				.usingURLConnection(urlConnection);
 
 		httpHandler.getResponseText();
@@ -114,7 +114,7 @@ public class HttpMultiPartUploaderTest {
 	@Test
 	public void testGetErrorText() {
 		HttpURLConnectionSpy urlConnection = new HttpURLConnectionSpy(url);
-		HttpMultiPartUploaderImp httpHandler = HttpMultiPartUploaderImp
+		HttpMultiPartUploader httpHandler = HttpMultiPartUploaderImp
 				.usingURLConnection(urlConnection);
 
 		urlConnection.setErrorText("some text");
@@ -124,7 +124,7 @@ public class HttpMultiPartUploaderTest {
 	@Test(expectedExceptions = RuntimeException.class)
 	public void testGetErrorTextBroken() {
 		HttpURLConnectionSpy urlConnection = new HttpURLConnectionPartlyErrorSpy(url);
-		HttpMultiPartUploaderImp httpHandler = HttpMultiPartUploaderImp
+		HttpMultiPartUploader httpHandler = HttpMultiPartUploaderImp
 				.usingURLConnection(urlConnection);
 
 		assertEquals(httpHandler.getErrorText(), "some text");

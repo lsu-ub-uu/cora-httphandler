@@ -31,7 +31,7 @@ import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-public final class HttpMultiPartUploaderImp {
+public final class HttpMultiPartUploaderImp implements HttpMultiPartUploader {
 
 	private static final String CONTENT_DISPOSITION = "Content-Disposition";
 	private static final String CONTENT_TYPE = "Content-Type";
@@ -54,6 +54,10 @@ public final class HttpMultiPartUploaderImp {
 		}
 	}
 
+	public static HttpMultiPartUploader usingURLConnection(HttpURLConnection httpUrlConnection) {
+		return new HttpMultiPartUploaderImp(httpUrlConnection);
+	}
+
 	private void tryToSetUpUrlConnectionAndCreateWriter() throws IOException {
 		setUpUrlConnection();
 
@@ -74,10 +78,7 @@ public final class HttpMultiPartUploaderImp {
 		writer = new PrintWriter(new OutputStreamWriter(outputStream, charset), true);
 	}
 
-	public static HttpMultiPartUploaderImp usingURLConnection(HttpURLConnection httpUrlConnection) {
-		return new HttpMultiPartUploaderImp(httpUrlConnection);
-	}
-
+	@Override
 	public String getResponseText() {
 		try {
 			return tryToGetResponseText();
@@ -104,6 +105,7 @@ public final class HttpMultiPartUploaderImp {
 		return text.toString();
 	}
 
+	@Override
 	public int getResponseCode() {
 		try {
 			return urlConnection.getResponseCode();
@@ -112,6 +114,7 @@ public final class HttpMultiPartUploaderImp {
 		}
 	}
 
+	@Override
 	public String getErrorText() {
 		try {
 			return tryToGetErrorText();
@@ -125,6 +128,7 @@ public final class HttpMultiPartUploaderImp {
 		return getTextFromInputStream(inputStream);
 	}
 
+	@Override
 	public void addFormField(String name, String value) {
 		appendBoundaryToWriter();
 		writer.append(CONTENT_DISPOSITION + ": form-data; name=\"" + name + "\"").append(LINE_FEED);
@@ -138,6 +142,7 @@ public final class HttpMultiPartUploaderImp {
 		return writer.append("--" + BOUNDARY).append(LINE_FEED);
 	}
 
+	@Override
 	public void addFilePart(String fieldName, String fileName, InputStream stream)
 			throws IOException {
 		addFileInfo(fieldName, fileName);
@@ -166,6 +171,7 @@ public final class HttpMultiPartUploaderImp {
 		stream.close();
 	}
 
+	@Override
 	public void addHeaderField(String name, String value) {
 		addField(name, value);
 	}
@@ -175,6 +181,7 @@ public final class HttpMultiPartUploaderImp {
 		writer.flush();
 	}
 
+	@Override
 	public void done() throws IOException {
 		writer.append(LINE_FEED).flush();
 		writer.append("--" + BOUNDARY + "--").append(LINE_FEED);
