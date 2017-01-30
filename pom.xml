@@ -19,16 +19,10 @@
 	</parent>
 
 	<artifactId>httphandler</artifactId>
-	<version>0.1-SNAPSHOT</version>
+	<version>0.2-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>httphandler</name>
-
-	<properties>
-		<json.version>0.3-SNAPSHOT</json.version>
-		<beefeater.version>0.5-SNAPSHOT</beefeater.version>
-		<spider.version>0.12-SNAPSHOT</spider.version>
-	</properties>
 
 	<scm>
 		<connection>scm:git:https://git.epc.ub.uu.se/epc/httphandler.git</connection>
@@ -63,22 +57,6 @@
 	</repositories>
 
 	<dependencies>
-<!-- 		<dependency> -->
-<!-- 			<groupId>se.uu.ub.cora</groupId> -->
-<!-- 			<artifactId>json</artifactId> -->
-<!-- 			<version>${json.version}</version> -->
-<!-- 			<scope>compile</scope> -->
-<!-- 		</dependency> -->
-<!-- 		<dependency> -->
-<!-- 			<groupId>se.uu.ub.cora</groupId> -->
-<!-- 			<artifactId>beefeater</artifactId> -->
-<!-- 			<version>${beefeater.version}</version> -->
-<!-- 		</dependency> -->
-<!-- 		<dependency> -->
-<!-- 			<groupId>se.uu.ub.cora</groupId> -->
-<!-- 			<artifactId>spider</artifactId> -->
-<!-- 			<version>${spider.version}</version> -->
-<!-- 		</dependency> -->
 		<dependency>
 			<groupId>org.testng</groupId>
 			<artifactId>testng</artifactId>
