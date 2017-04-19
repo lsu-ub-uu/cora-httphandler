@@ -44,13 +44,13 @@ public class HttpMultiPartUploaderTest {
 		HttpURLConnectionSpy urlConnection = new HttpURLConnectionSpy(url);
 		HttpMultiPartUploader httpHandler = HttpMultiPartUploaderImp
 				.usingURLConnection(urlConnection);
-		httpHandler.addHeaderField("Accept", "application/uub+record+json2");
+		httpHandler.addHeaderField("Accept", "application/vnd.uub.record+json2");
 		httpHandler.addFormField("some", "value");
 		InputStream fakeStream = new ByteArrayInputStream(
 				"a string".getBytes(StandardCharsets.UTF_8));
 		httpHandler.addFilePart("file", "adele.png", fakeStream);
 		httpHandler.done();
-		String expected = "Accept: application/uub+record+json2\n";
+		String expected = "Accept: application/vnd.uub.record+json2\n";
 
 		expected += "--xxxYYYxxx\n";
 		expected += "Content-Disposition: form-data; name=\"some\"\n";
