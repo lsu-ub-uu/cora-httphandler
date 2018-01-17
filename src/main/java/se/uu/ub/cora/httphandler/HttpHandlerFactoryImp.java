@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Uppsala University Library
+ * Copyright 2016, 2018 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -38,5 +38,21 @@ public class HttpHandlerFactoryImp implements HttpHandlerFactory {
 		URL url = new URL(urlString);
 		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
 		return HttpHandlerImp.usingURLConnection(urlConnection);
+	}
+
+	@Override
+	public HttpMultiPartUploader factorHttpMultiPartUploader(String urlString) {
+		try {
+			return tryToFactorHttpMultiPartUploader(urlString);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private HttpMultiPartUploader tryToFactorHttpMultiPartUploader(String urlString)
+			throws IOException {
+		URL url = new URL(urlString);
+		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+		return HttpMultiPartUploaderImp.usingURLConnection(urlConnection);
 	}
 }

@@ -23,4 +23,5 @@ public interface HttpHandlerFactory {
 
 	HttpHandler factor(String url);
 
+	HttpMultiPartUploader factorHttpMultiPartUploader(String url);
 }

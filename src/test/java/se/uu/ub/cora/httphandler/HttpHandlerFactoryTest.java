@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Uppsala University Library
+ * Copyright 2016, 2018 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -21,21 +21,38 @@ package se.uu.ub.cora.httphandler;
 
 import static org.testng.Assert.assertTrue;
 
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 public class HttpHandlerFactoryTest {
+	private HttpHandlerFactory factory;
+
+	@BeforeMethod
+	public void setUp() {
+		factory = new HttpHandlerFactoryImp();
+	}
+
 	@Test
 	public void testFactor() {
-		HttpHandlerFactory httpHandlerFactory = new HttpHandlerFactoryImp();
 		String url = "http://google.se";
-		HttpHandler httpHandler = httpHandlerFactory.factor(url);
+		HttpHandler httpHandler = factory.factor(url);
 		assertTrue(httpHandler instanceof HttpHandlerImp);
 	}
 
 	@Test(expectedExceptions = RuntimeException.class)
 	public void testBrokenFactor() {
-		HttpHandlerFactory httpHandlerFactory = new HttpHandlerFactoryImp();
 		String url = "notAnValidProtocol://google.se";
-		httpHandlerFactory.factor(url);
+		factory.factor(url);
+	}
+
+	@Test
+	public void testFactorHttpMultiPartUploader() {
+		HttpMultiPartUploader factored = factory.factorHttpMultiPartUploader("http://www.uu.se");
+		assertTrue(factored instanceof HttpMultiPartUploaderImp);
+	}
+
+	@Test(expectedExceptions = RuntimeException.class)
+	public void testFactorHttpMultiPartUploaderNonExistingClassName() {
+		factory.factorHttpMultiPartUploader("/()&/()%&");
 	}
 }
