@@ -20,10 +20,12 @@
 package se.uu.ub.cora.httphandler;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.ProtocolException;
 import java.nio.charset.StandardCharsets;
@@ -103,7 +105,12 @@ public final class HttpHandlerImp implements HttpHandler {
 	private void tryToSetOutput(String outputString) throws IOException {
 		urlConnection.setDoOutput(true);
 		DataOutputStream wr = new DataOutputStream(urlConnection.getOutputStream());
-		wr.writeBytes(outputString);
+
+		BufferedWriter bwr = new BufferedWriter(
+				new OutputStreamWriter(urlConnection.getOutputStream(), StandardCharsets.UTF_8));
+		bwr.write(outputString);
+		bwr.flush();
+		bwr.close();
 		wr.flush();
 		wr.close();
 	}

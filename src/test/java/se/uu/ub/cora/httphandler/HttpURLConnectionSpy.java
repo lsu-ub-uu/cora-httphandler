@@ -38,7 +38,8 @@ public class HttpURLConnectionSpy extends HttpURLConnection {
 	private int responseCode = 200;
 
 	private String responseText;
-	public ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(999);
+
+	private ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(999);
 
 	public boolean doOutput;
 
@@ -96,6 +97,10 @@ public class HttpURLConnectionSpy extends HttpURLConnection {
 	@Override
 	public OutputStream getOutputStream() throws IOException {
 		return byteArrayOutputStream;
+	}
+
+	public String getOutputStreamAsString() {
+		return new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8);
 	}
 
 	@Override

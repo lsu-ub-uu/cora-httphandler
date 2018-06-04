@@ -75,8 +75,8 @@ public class HttpHandlerTest {
 		HttpURLConnectionSpy urlConnection = new HttpURLConnectionSpy(url);
 		HttpHandler httpHandler = HttpHandlerImp.usingURLConnection(urlConnection);
 
-		urlConnection.setResponseText("some text");
-		assertEquals(httpHandler.getResponseText(), "some text");
+		urlConnection.setResponseText("some text åäö");
+		assertEquals(httpHandler.getResponseText(), "some text åäö");
 	}
 
 	@Test(expectedExceptions = RuntimeException.class)
@@ -108,10 +108,10 @@ public class HttpHandlerTest {
 	public void testSetOutput() {
 		HttpURLConnectionSpy urlConnection = new HttpURLConnectionSpy(url);
 		HttpHandler httpHandler = HttpHandlerImp.usingURLConnection(urlConnection);
-
-		httpHandler.setOutput("some text");
+		String str = "some text åäö";
+		httpHandler.setOutput(str);
 		assertTrue(urlConnection.doOutput);
-		assertEquals(urlConnection.byteArrayOutputStream.toString(), "some text");
+		assertEquals(urlConnection.getOutputStreamAsString(), str);
 	}
 
 	@Test(expectedExceptions = RuntimeException.class)
@@ -135,10 +135,11 @@ public class HttpHandlerTest {
 	public void testSetStreamOutput() {
 		HttpURLConnectionSpy urlConnection = new HttpURLConnectionSpy(url);
 		HttpHandler httpHandler = HttpHandlerImp.usingURLConnection(urlConnection);
-		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
+		InputStream stream = new ByteArrayInputStream(
+				"a string åäö".getBytes(StandardCharsets.UTF_8));
 		httpHandler.setStreamOutput(stream);
 		assertTrue(urlConnection.doOutput);
-		assertEquals(urlConnection.byteArrayOutputStream.toString(), "a string");
+		assertEquals(urlConnection.getOutputStreamAsString(), "a string åäö");
 	}
 
 	@Test(expectedExceptions = RuntimeException.class)

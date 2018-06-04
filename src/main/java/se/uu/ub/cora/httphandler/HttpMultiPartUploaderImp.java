@@ -44,33 +44,43 @@ public final class HttpMultiPartUploaderImp implements HttpMultiPartUploader {
 	private Charset charset = StandardCharsets.UTF_8;
 	private OutputStream outputStream;
 	private PrintWriter writer;
+	private boolean connectionSetUp = false;
 
 	private HttpMultiPartUploaderImp(HttpURLConnection httpUrlConnection) {
-		try {
-			this.urlConnection = httpUrlConnection;
-			tryToSetUpUrlConnectionAndCreateWriter();
-		} catch (IOException e) {
-			throw new RuntimeException("Failed to upload multipart", e);
-		}
+		// try {
+		this.urlConnection = httpUrlConnection;
+		// tryToSetUpUrlConnectionAndCreateWriter();
+		// } catch (IOException e) {
+		// throw new RuntimeException("Failed to upload multipart", e);
+		// }
 	}
 
 	public static HttpMultiPartUploader usingURLConnection(HttpURLConnection httpUrlConnection) {
 		return new HttpMultiPartUploaderImp(httpUrlConnection);
 	}
 
-	private void tryToSetUpUrlConnectionAndCreateWriter() throws IOException {
+	// private void tryToSetUpUrlConnectionAndCreateWriter() throws IOException {
+	private void tryToSetUpUrlConnectionAndCreateWriter() {
 		setUpUrlConnection();
 
-		createWriter();
+		try {
+			createWriter();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	private void setUpUrlConnection() {
-		this.urlConnection.setUseCaches(false);
-		this.urlConnection.setDoOutput(true);
-		this.urlConnection.setDoInput(true);
-		this.urlConnection.setRequestProperty(CONTENT_TYPE,
-				"multipart/form-data; boundary=" + BOUNDARY);
-		this.urlConnection.setRequestProperty("User-Agent", "CodeJava Agent");
+		if (!connectionSetUp) {
+			connectionSetUp = true;
+			this.urlConnection.setUseCaches(false);
+			this.urlConnection.setDoOutput(true);
+			this.urlConnection.setDoInput(true);
+			this.urlConnection.setRequestProperty(CONTENT_TYPE,
+					"multipart/form-data; boundary=" + BOUNDARY);
+			this.urlConnection.setRequestProperty("User-Agent", "CodeJava Agent");
+		}
 	}
 
 	private void createWriter() throws IOException {
@@ -130,6 +140,7 @@ public final class HttpMultiPartUploaderImp implements HttpMultiPartUploader {
 
 	@Override
 	public void addFormField(String name, String value) {
+		tryToSetUpUrlConnectionAndCreateWriter();
 		appendBoundaryToWriter();
 		writer.append(CONTENT_DISPOSITION + ": form-data; name=\"" + name + "\"").append(LINE_FEED);
 		writer.append(CONTENT_TYPE + ":" + " text/plain; charset=" + charset).append(LINE_FEED);
@@ -145,6 +156,7 @@ public final class HttpMultiPartUploaderImp implements HttpMultiPartUploader {
 	@Override
 	public void addFilePart(String fieldName, String fileName, InputStream stream)
 			throws IOException {
+		tryToSetUpUrlConnectionAndCreateWriter();
 		addFileInfo(fieldName, fileName);
 		streamData(stream);
 		writer.flush();
@@ -173,13 +185,18 @@ public final class HttpMultiPartUploaderImp implements HttpMultiPartUploader {
 
 	@Override
 	public void addHeaderField(String name, String value) {
-		addField(name, value);
+		// addField(name, value);
+		urlConnection.setRequestProperty(name, value);
 	}
+	// @Override
+	// public void setRequestProperty(String key, String value) {
+	// urlConnection.setRequestProperty(key, value);
+	// }
 
-	private void addField(String name, String value) {
-		writer.append(name).append(": ").append(value).append(LINE_FEED);
-		writer.flush();
-	}
+	// private void addField(String name, String value) {
+	// writer.append(name).append(": ").append(value).append(LINE_FEED);
+	// writer.flush();
+	// }
 
 	@Override
 	public void done() throws IOException {

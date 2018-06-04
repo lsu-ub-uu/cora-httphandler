@@ -50,7 +50,8 @@ public class HttpMultiPartUploaderTest {
 				"a string".getBytes(StandardCharsets.UTF_8));
 		httpHandler.addFilePart("file", "adele.png", fakeStream);
 		httpHandler.done();
-		String expected = "Accept: application/vnd.uub.record+json2\n";
+		// String expected = "Accept: application/vnd.uub.record+json2\n";
+		String expected = "";
 
 		expected += "--xxxYYYxxx\n";
 		expected += "Content-Disposition: form-data; name=\"some\"\n";
@@ -65,13 +66,19 @@ public class HttpMultiPartUploaderTest {
 		expected += "a string\n";
 		expected += "--xxxYYYxxx--\n";
 
-		assertEquals(urlConnection.byteArrayOutputStream.toString(), expected);
+		assertEquals(urlConnection.getOutputStreamAsString(), expected);
+
+		assertEquals(urlConnection.requestProperties.get("Accept"),
+				"application/vnd.uub.record+json2");
 	}
 
 	@Test(expectedExceptions = RuntimeException.class)
 	public void testSetStreamOutputError() throws IOException {
 		HttpURLConnectionSpy urlConnection = new HttpURLConnectionErrorSpy(url);
-		HttpMultiPartUploaderImp.usingURLConnection(urlConnection);
+		HttpMultiPartUploader httpHandler = HttpMultiPartUploaderImp
+				.usingURLConnection(urlConnection);
+		httpHandler.addFormField("some", "value");
+
 	}
 
 	@Test
