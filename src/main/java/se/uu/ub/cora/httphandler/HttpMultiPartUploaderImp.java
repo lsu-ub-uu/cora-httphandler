@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Uppsala University Library
+ * Copyright 2016, 2018 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -41,41 +41,17 @@ public final class HttpMultiPartUploaderImp implements HttpMultiPartUploader {
 
 	private static final String BOUNDARY = "xxxYYYxxx";
 	private static final String LINE_FEED = "\n";
-	private Charset charset = StandardCharsets.UTF_8;
+	private static final Charset UTF_8 = StandardCharsets.UTF_8;
 	private OutputStream outputStream;
 	private PrintWriter writer;
+	private boolean connectionSetUp = false;
 
 	private HttpMultiPartUploaderImp(HttpURLConnection httpUrlConnection) {
-		try {
-			this.urlConnection = httpUrlConnection;
-			tryToSetUpUrlConnectionAndCreateWriter();
-		} catch (IOException e) {
-			throw new RuntimeException("Failed to upload multipart", e);
-		}
+		this.urlConnection = httpUrlConnection;
 	}
 
 	public static HttpMultiPartUploader usingURLConnection(HttpURLConnection httpUrlConnection) {
 		return new HttpMultiPartUploaderImp(httpUrlConnection);
-	}
-
-	private void tryToSetUpUrlConnectionAndCreateWriter() throws IOException {
-		setUpUrlConnection();
-
-		createWriter();
-	}
-
-	private void setUpUrlConnection() {
-		this.urlConnection.setUseCaches(false);
-		this.urlConnection.setDoOutput(true);
-		this.urlConnection.setDoInput(true);
-		this.urlConnection.setRequestProperty(CONTENT_TYPE,
-				"multipart/form-data; boundary=" + BOUNDARY);
-		this.urlConnection.setRequestProperty("User-Agent", "CodeJava Agent");
-	}
-
-	private void createWriter() throws IOException {
-		outputStream = this.urlConnection.getOutputStream();
-		writer = new PrintWriter(new OutputStreamWriter(outputStream, charset), true);
 	}
 
 	@Override
@@ -94,8 +70,7 @@ public final class HttpMultiPartUploaderImp implements HttpMultiPartUploader {
 
 	private String getTextFromInputStream(InputStream inputStream) throws IOException {
 		StringBuilder text = new StringBuilder();
-		BufferedReader in = new BufferedReader(
-				new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+		BufferedReader in = new BufferedReader(new InputStreamReader(inputStream, UTF_8));
 		String inputLine;
 
 		while ((inputLine = in.readLine()) != null) {
@@ -130,12 +105,44 @@ public final class HttpMultiPartUploaderImp implements HttpMultiPartUploader {
 
 	@Override
 	public void addFormField(String name, String value) {
+		tryToSetUpUrlConnectionAndCreateWriter();
 		appendBoundaryToWriter();
 		writer.append(CONTENT_DISPOSITION + ": form-data; name=\"" + name + "\"").append(LINE_FEED);
-		writer.append(CONTENT_TYPE + ":" + " text/plain; charset=" + charset).append(LINE_FEED);
+		writer.append(CONTENT_TYPE + ":" + " text/plain; charset=" + UTF_8).append(LINE_FEED);
 		writer.append(LINE_FEED);
 		writer.append(value).append(LINE_FEED);
 		writer.flush();
+	}
+
+	private void tryToSetUpUrlConnectionAndCreateWriter() {
+		if (!connectionSetUp) {
+			setUpUrlConnectionAndCreateWriter();
+		}
+	}
+
+	private void setUpUrlConnectionAndCreateWriter() {
+		setUpUrlConnection();
+		try {
+			createWriter();
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to upload multipart", e);
+		}
+	}
+
+	private void setUpUrlConnection() {
+		connectionSetUp = true;
+		this.urlConnection.setUseCaches(false);
+		this.urlConnection.setDoOutput(true);
+		this.urlConnection.setDoInput(true);
+		this.urlConnection.setRequestProperty(CONTENT_TYPE,
+				"multipart/form-data; boundary=" + BOUNDARY);
+		this.urlConnection.setRequestProperty("User-Agent", "HttpMultipartUploader Agent");
+
+	}
+
+	private void createWriter() throws IOException {
+		outputStream = this.urlConnection.getOutputStream();
+		writer = new PrintWriter(new OutputStreamWriter(outputStream, UTF_8), true);
 	}
 
 	private PrintWriter appendBoundaryToWriter() {
@@ -145,6 +152,7 @@ public final class HttpMultiPartUploaderImp implements HttpMultiPartUploader {
 	@Override
 	public void addFilePart(String fieldName, String fileName, InputStream stream)
 			throws IOException {
+		tryToSetUpUrlConnectionAndCreateWriter();
 		addFileInfo(fieldName, fileName);
 		streamData(stream);
 		writer.flush();
@@ -173,12 +181,16 @@ public final class HttpMultiPartUploaderImp implements HttpMultiPartUploader {
 
 	@Override
 	public void addHeaderField(String name, String value) {
-		addField(name, value);
+		throwErrorIfConnectionAlreadySetUp(name, value);
+		urlConnection.setRequestProperty(name, value);
 	}
 
-	private void addField(String name, String value) {
-		writer.append(name).append(": ").append(value).append(LINE_FEED);
-		writer.flush();
+	private void throwErrorIfConnectionAlreadySetUp(String name, String value) {
+		if (connectionSetUp) {
+			throw new RuntimeException(
+					"Headers can not be set after connection is setup on multipart requests, headerName: "
+							+ name + " headerValue: " + value);
+		}
 	}
 
 	@Override

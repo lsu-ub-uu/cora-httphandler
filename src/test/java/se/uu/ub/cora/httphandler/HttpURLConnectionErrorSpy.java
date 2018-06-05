@@ -54,7 +54,8 @@ public class HttpURLConnectionErrorSpy extends HttpURLConnectionSpy {
 	@Override
 	public void setRequestMethod(String method) throws ProtocolException {
 		requestMethod = method;
-		throw new ProtocolException("this is a protocol exception");
+		throw new ProtocolException(
+				"this is a protocol exception setting requestMethod from HttpURLConnectionErrorSpy");
 	}
 
 	@Override
@@ -63,7 +64,8 @@ public class HttpURLConnectionErrorSpy extends HttpURLConnectionSpy {
 
 	@Override
 	public int getResponseCode() throws IOException {
-		throw new IOException("this is an ioException exception");
+		throw new IOException(
+				"this is an ioException getting responseCode from HttpURLConnectionErrorSpy");
 	}
 
 	@Override
@@ -72,12 +74,14 @@ public class HttpURLConnectionErrorSpy extends HttpURLConnectionSpy {
 
 	@Override
 	public InputStream getInputStream() throws IOException {
-		throw new IOException("this is an ioException exception");
+		throw new IOException(
+				"this is an ioException getting inputStream from HttpURLConnectionErrorSpy");
 	}
 
 	@Override
 	public OutputStream getOutputStream() throws IOException {
-		throw new IOException("this is an ioException exception");
+		throw new IOException(
+				"this is an ioException getting outputStream from HttpURLConnectionErrorSpy");
 	}
 
 	@Override

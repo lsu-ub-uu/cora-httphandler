@@ -110,7 +110,7 @@ public class HttpHandlerTest {
 		HttpHandler httpHandler = HttpHandlerImp.usingURLConnection(urlConnection);
 		String str = "some text åäö";
 		httpHandler.setOutput(str);
-		assertTrue(urlConnection.doOutput);
+		assertTrue(urlConnection.dooutput.get(0));
 		assertEquals(urlConnection.getOutputStreamAsString(), str);
 	}
 
@@ -138,7 +138,7 @@ public class HttpHandlerTest {
 		InputStream stream = new ByteArrayInputStream(
 				"a string åäö".getBytes(StandardCharsets.UTF_8));
 		httpHandler.setStreamOutput(stream);
-		assertTrue(urlConnection.doOutput);
+		assertTrue(urlConnection.dooutput.get(0));
 		assertEquals(urlConnection.getOutputStreamAsString(), "a string åäö");
 	}
 

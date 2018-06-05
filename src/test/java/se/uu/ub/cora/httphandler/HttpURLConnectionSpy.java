@@ -28,7 +28,9 @@ import java.net.HttpURLConnection;
 import java.net.ProtocolException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class HttpURLConnectionSpy extends HttpURLConnection {
@@ -41,13 +43,19 @@ public class HttpURLConnectionSpy extends HttpURLConnection {
 
 	private ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(999);
 
-	public boolean doOutput;
+	public List<Boolean> dooutput = new ArrayList<>();
 
 	public Map<String, String> requestProperties = new HashMap<>();
 
 	private String errorText;
 
 	private Map<String, String> headerFields = new HashMap<>();
+
+	public List<Boolean> usecaches = new ArrayList<>();
+
+	public List<Boolean> doinput = new ArrayList<>();
+	public int setRequestPropertiesCalledNoTimes = 0;
+	public int getOutputStreamCalledNoTimes = 0;
 
 	public HttpURLConnectionSpy(URL url) {
 		super(url);
@@ -96,7 +104,9 @@ public class HttpURLConnectionSpy extends HttpURLConnection {
 
 	@Override
 	public OutputStream getOutputStream() throws IOException {
+		getOutputStreamCalledNoTimes++;
 		return byteArrayOutputStream;
+
 	}
 
 	public String getOutputStreamAsString() {
@@ -105,12 +115,13 @@ public class HttpURLConnectionSpy extends HttpURLConnection {
 
 	@Override
 	public void setDoOutput(boolean dooutput) {
-		this.doOutput = dooutput;
+		this.dooutput.add(dooutput);
 	}
 
 	@Override
 	public void setRequestProperty(String key, String value) {
 		requestProperties.put(key, value);
+		setRequestPropertiesCalledNoTimes++;
 	}
 
 	public void setErrorText(String errorText) {
@@ -130,4 +141,22 @@ public class HttpURLConnectionSpy extends HttpURLConnection {
 	public String getHeaderField(String name) {
 		return headerFields.get(name);
 	}
+
+	// this.urlConnection.setUseCaches(false);
+	// this.urlConnection.setDoOutput(true);
+	// this.urlConnection.setDoInput(true);
+	// this.urlConnection.setRequestProperty(CONTENT_TYPE,
+	// "multipart/form-data; boundary=" + BOUNDARY);
+	// this.urlConnection.setRequestProperty("User-Agent", "CodeJava Agent");
+	// }
+	@Override
+	public void setUseCaches(boolean usecaches) {
+		this.usecaches.add(usecaches);
+	}
+
+	@Override
+	public void setDoInput(boolean doinput) {
+		this.doinput.add(doinput);
+	}
+
 }
