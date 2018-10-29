@@ -19,10 +19,8 @@
 
 package se.uu.ub.cora.httphandler;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -36,7 +34,6 @@ public final class HttpMultiPartUploaderImp implements HttpMultiPartUploader {
 	private static final String CONTENT_DISPOSITION = "Content-Disposition";
 	private static final String CONTENT_TYPE = "Content-Type";
 	private static final int INITIAL_BUFFER_SIZE = 4096;
-	private static final int STATUS_INTERNAL_SERVER_ERROR = 500;
 	private HttpURLConnection urlConnection;
 
 	private static final String BOUNDARY = "xxxYYYxxx";
@@ -45,9 +42,11 @@ public final class HttpMultiPartUploaderImp implements HttpMultiPartUploader {
 	private OutputStream outputStream;
 	private PrintWriter writer;
 	private boolean connectionSetUp = false;
+	private HttpURLConnectionHandler httpURLConnectionHandler;
 
 	private HttpMultiPartUploaderImp(HttpURLConnection httpUrlConnection) {
 		this.urlConnection = httpUrlConnection;
+		httpURLConnectionHandler = new HttpURLConnectionHandler(httpUrlConnection);
 	}
 
 	public static HttpMultiPartUploader usingURLConnection(HttpURLConnection httpUrlConnection) {
@@ -56,51 +55,17 @@ public final class HttpMultiPartUploaderImp implements HttpMultiPartUploader {
 
 	@Override
 	public String getResponseText() {
-		try {
-			return tryToGetResponseText();
-		} catch (Exception e) {
-			throw new RuntimeException("Error getting response text: ", e);
-		}
-	}
-
-	private String tryToGetResponseText() throws IOException {
-		InputStream inputStream = urlConnection.getInputStream();
-		return getTextFromInputStream(inputStream);
-	}
-
-	private String getTextFromInputStream(InputStream inputStream) throws IOException {
-		StringBuilder text = new StringBuilder();
-		BufferedReader in = new BufferedReader(new InputStreamReader(inputStream, UTF_8));
-		String inputLine;
-
-		while ((inputLine = in.readLine()) != null) {
-			text.append(inputLine);
-		}
-		in.close();
-		return text.toString();
+		return httpURLConnectionHandler.getResponseText();
 	}
 
 	@Override
 	public int getResponseCode() {
-		try {
-			return urlConnection.getResponseCode();
-		} catch (IOException e) {
-			return STATUS_INTERNAL_SERVER_ERROR;
-		}
+		return httpURLConnectionHandler.getResponseCode();
 	}
 
 	@Override
 	public String getErrorText() {
-		try {
-			return tryToGetErrorText();
-		} catch (Exception e) {
-			throw new RuntimeException("Error getting response text: ", e);
-		}
-	}
-
-	private String tryToGetErrorText() throws IOException {
-		InputStream inputStream = urlConnection.getErrorStream();
-		return getTextFromInputStream(inputStream);
+		return httpURLConnectionHandler.getErrorText();
 	}
 
 	@Override

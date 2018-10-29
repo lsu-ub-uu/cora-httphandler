@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Uppsala University Library
+ * Copyright 2016, 2018 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,12 +19,10 @@
 
 package se.uu.ub.cora.httphandler;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.ProtocolException;
@@ -33,11 +31,12 @@ import java.nio.charset.StandardCharsets;
 public final class HttpHandlerImp implements HttpHandler {
 
 	private static final int INITIAL_BUFFER_SIZE = 4096;
-	private static final int STATUS_INTERNAL_SERVER_ERROR = 500;
 	private HttpURLConnection urlConnection;
+	private HttpURLConnectionHandler httpURLConnectionHandler;
 
 	private HttpHandlerImp(HttpURLConnection httpUrlConnection) {
 		this.urlConnection = httpUrlConnection;
+		httpURLConnectionHandler = new HttpURLConnectionHandler(urlConnection);
 	}
 
 	public static HttpHandlerImp usingURLConnection(HttpURLConnection httpUrlConnection) {
@@ -59,38 +58,12 @@ public final class HttpHandlerImp implements HttpHandler {
 
 	@Override
 	public String getResponseText() {
-		try {
-			return tryToGetResponseText();
-		} catch (Exception e) {
-			throw new RuntimeException("Error getting response text: ", e);
-		}
-	}
-
-	private String tryToGetResponseText() throws IOException {
-		InputStream inputStream = urlConnection.getInputStream();
-		return getTextFromInputStream(inputStream);
-	}
-
-	private String getTextFromInputStream(InputStream inputStream) throws IOException {
-		StringBuilder response = new StringBuilder();
-		BufferedReader in = new BufferedReader(
-				new InputStreamReader(inputStream, StandardCharsets.UTF_8));
-		String inputLine;
-
-		while ((inputLine = in.readLine()) != null) {
-			response.append(inputLine);
-		}
-		in.close();
-		return response.toString();
+		return httpURLConnectionHandler.getResponseText();
 	}
 
 	@Override
 	public int getResponseCode() {
-		try {
-			return urlConnection.getResponseCode();
-		} catch (IOException e) {
-			return STATUS_INTERNAL_SERVER_ERROR;
-		}
+		return httpURLConnectionHandler.getResponseCode();
 	}
 
 	@Override
@@ -104,15 +77,11 @@ public final class HttpHandlerImp implements HttpHandler {
 
 	private void tryToSetOutput(String outputString) throws IOException {
 		urlConnection.setDoOutput(true);
-		DataOutputStream wr = new DataOutputStream(urlConnection.getOutputStream());
-
-		BufferedWriter bwr = new BufferedWriter(
-				new OutputStreamWriter(urlConnection.getOutputStream(), StandardCharsets.UTF_8));
-		bwr.write(outputString);
-		bwr.flush();
-		bwr.close();
-		wr.flush();
-		wr.close();
+		try (BufferedWriter bwr = new BufferedWriter(
+				new OutputStreamWriter(urlConnection.getOutputStream(), StandardCharsets.UTF_8))) {
+			bwr.write(outputString);
+			bwr.flush();
+		}
 	}
 
 	@Override
@@ -122,16 +91,7 @@ public final class HttpHandlerImp implements HttpHandler {
 
 	@Override
 	public String getErrorText() {
-		try {
-			return tryToGetErrorText();
-		} catch (Exception e) {
-			throw new RuntimeException("Error getting response text: ", e);
-		}
-	}
-
-	private String tryToGetErrorText() throws IOException {
-		InputStream inputStream = urlConnection.getErrorStream();
-		return getTextFromInputStream(inputStream);
+		return httpURLConnectionHandler.getErrorText();
 	}
 
 	@Override
@@ -145,14 +105,14 @@ public final class HttpHandlerImp implements HttpHandler {
 
 	private void tryToSetStreamOutput(InputStream stream) throws IOException {
 		urlConnection.setDoOutput(true);
-		DataOutputStream wr = new DataOutputStream(urlConnection.getOutputStream());
-		byte[] buffer = new byte[INITIAL_BUFFER_SIZE];
-		int n;
-		while ((n = stream.read(buffer)) > 0) {
-			wr.write(buffer, 0, n);
+		try (DataOutputStream wr = new DataOutputStream(urlConnection.getOutputStream())) {
+			byte[] buffer = new byte[INITIAL_BUFFER_SIZE];
+			int n;
+			while ((n = stream.read(buffer)) > 0) {
+				wr.write(buffer, 0, n);
+			}
+			wr.flush();
 		}
-		wr.flush();
-		wr.close();
 	}
 
 	@Override
