@@ -25,9 +25,9 @@
 	<name>httphandler</name>
 
 	<scm>
-		<connection>scm:git:https://github.com/lsu-ub-uu/httphandler.git</connection>
-		<developerConnection>scm:git:https://github.com/lsu-ub-uu/httphandler.git</developerConnection>
-		<url>https://github.com/lsu-ub-uu/httphandler.git</url>
+		<connection>scm:git:https://github.com/lsu-ub-uu/cora-httphandler.git</connection>
+		<developerConnection>scm:git:https://github.com/lsu-ub-uu/cora-httphandler.git</developerConnection>
+		<url>https://github.com/lsu-ub-uu/cora-httphandler.git</url>
 	</scm>
 
 	<dependencies>
