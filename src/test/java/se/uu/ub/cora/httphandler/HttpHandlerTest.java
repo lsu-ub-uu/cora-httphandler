@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Uppsala University Library
+ * Copyright 2016, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -165,5 +166,20 @@ public class HttpHandlerTest {
 		HttpHandler httpHandler = HttpHandlerImp.usingURLConnection(urlConnection);
 
 		assertEquals(httpHandler.getHeaderField("someOtherName"), null);
+	}
+
+	@Test
+	public void testSetBasicAuthorization() {
+		HttpURLConnectionSpy urlConnection = new HttpURLConnectionSpy(url);
+		HttpHandler httpHandler = HttpHandlerImp.usingURLConnection(urlConnection);
+
+		String username = "someUserId";
+		String password = "somePassword";
+		httpHandler.setBasicAuthorization(username, password);
+
+		String encoded = Base64.getEncoder()
+				.encodeToString((username + ":" + password).getBytes(StandardCharsets.UTF_8));
+		assertEquals(urlConnection.requestProperties.get("Authorization"), "Basic " + encoded);
+
 	}
 }

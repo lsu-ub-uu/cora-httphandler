@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Uppsala University Library
+ * Copyright 2016, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -38,5 +38,7 @@ public interface HttpHandler {
 	void setStreamOutput(InputStream stream);
 
 	String getHeaderField(String name);
+
+	void setBasicAuthorization(String username, String password);
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2018 Uppsala University Library
+ * Copyright 2016, 2018, 2019 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -27,6 +27,7 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.ProtocolException;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 public final class HttpHandlerImp implements HttpHandler {
 
@@ -118,6 +119,13 @@ public final class HttpHandlerImp implements HttpHandler {
 	@Override
 	public String getHeaderField(String name) {
 		return urlConnection.getHeaderField(name);
+	}
+
+	@Override
+	public void setBasicAuthorization(String username, String password) {
+		String encoded = Base64.getEncoder()
+				.encodeToString((username + ":" + password).getBytes(StandardCharsets.UTF_8));
+		setRequestProperty("Authorization", "Basic " + encoded);
 	}
 
 }
