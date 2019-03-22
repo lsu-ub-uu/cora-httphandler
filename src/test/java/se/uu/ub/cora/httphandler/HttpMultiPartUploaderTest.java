@@ -33,6 +33,10 @@ import java.nio.charset.StandardCharsets;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.httphandler.urlconnection.HttpURLConnectionErrorSpy;
+import se.uu.ub.cora.httphandler.urlconnection.HttpURLConnectionPartlyErrorSpy;
+import se.uu.ub.cora.httphandler.urlconnection.HttpURLConnectionSpy;
+
 public class HttpMultiPartUploaderTest {
 	private URL url;
 

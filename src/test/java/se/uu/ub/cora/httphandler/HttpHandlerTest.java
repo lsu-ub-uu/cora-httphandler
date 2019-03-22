@@ -32,6 +32,9 @@ import java.util.Base64;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.httphandler.urlconnection.HttpURLConnectionErrorSpy;
+import se.uu.ub.cora.httphandler.urlconnection.HttpURLConnectionSpy;
+
 public class HttpHandlerTest {
 	private URL url;
 

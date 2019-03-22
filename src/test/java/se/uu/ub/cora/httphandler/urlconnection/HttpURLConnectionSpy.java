@@ -17,7 +17,7 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.httphandler;
+package se.uu.ub.cora.httphandler.urlconnection;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

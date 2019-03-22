@@ -29,6 +29,8 @@ import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
+import se.uu.ub.cora.httphandler.urlconnection.HttpURLConnectionHandler;
+
 public final class HttpMultiPartUploaderImp implements HttpMultiPartUploader {
 
 	private static final String CONTENT_DISPOSITION = "Content-Disposition";

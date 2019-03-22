@@ -29,6 +29,8 @@ import java.net.ProtocolException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
+import se.uu.ub.cora.httphandler.urlconnection.HttpURLConnectionHandler;
+
 public final class HttpHandlerImp implements HttpHandler {
 
 	private static final int INITIAL_BUFFER_SIZE = 4096;
