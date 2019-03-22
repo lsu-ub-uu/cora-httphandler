@@ -35,7 +35,7 @@
 		<connection>scm:git:https://github.com/lsu-ub-uu/cora-httphandler.git</connection>
 		<developerConnection>scm:git:https://github.com/lsu-ub-uu/cora-httphandler.git</developerConnection>
 		<url>https://github.com/lsu-ub-uu/cora-httphandler.git</url>
-	  <tag>HEAD</tag>
+	  <tag>release/0.8</tag>
   </scm>
 
 	<dependencies>
