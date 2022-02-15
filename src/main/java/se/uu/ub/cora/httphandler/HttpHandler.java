@@ -23,7 +23,7 @@ import java.io.InputStream;
 
 public interface HttpHandler {
 
-	void setRequestMethod(String requestMetod);
+	void setRequestMethod(String requestMethod);
 
 	String getResponseText();
 

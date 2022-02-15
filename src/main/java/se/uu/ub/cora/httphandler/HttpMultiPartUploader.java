@@ -34,8 +34,25 @@ public interface HttpMultiPartUploader {
 
 	void addFilePart(String fieldName, String fileName, InputStream stream) throws IOException;
 
+	/**
+	 * Add the header to the connection
+	 * 
+	 * @param name
+	 *            It is the name of the header
+	 * @param value
+	 *            It is the value of the header
+	 */
+
 	void addHeaderField(String name, String value);
 
 	void done() throws IOException;
+
+	/**
+	 * Sets the connection to the specified requestMethod
+	 * 
+	 * @param requestMetod
+	 *            It is the method to be set on the connection
+	 */
+	void setRequestMethod(String requestMethod);
 
 }
