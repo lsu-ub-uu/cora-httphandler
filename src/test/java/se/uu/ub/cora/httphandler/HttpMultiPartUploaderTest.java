@@ -220,22 +220,4 @@ public class HttpMultiPartUploaderTest {
 		}
 	}
 
-	@Test
-	public void testSetRequestMethod() {
-		HttpURLConnectionSpy urlConnection = new HttpURLConnectionSpy(url);
-		HttpMultiPartUploader httpHandler = HttpMultiPartUploaderImp
-				.usingURLConnection(urlConnection);
-		httpHandler.setRequestMethod("PUT");
-		assertEquals(urlConnection.requestMethod, "PUT");
-	}
-
-	@Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = ""
-			+ "NOT_A_REQUEST_METHOD is not a valid request method.")
-	public void testSetWrongRequestMethod() {
-		HttpURLConnectionSpy urlConnection = new HttpURLConnectionErrorSpy(url);
-		HttpMultiPartUploader httpHandler = HttpMultiPartUploaderImp
-				.usingURLConnection(urlConnection);
-		httpHandler.setRequestMethod("NOT_A_REQUEST_METHOD");
-	}
-
 }

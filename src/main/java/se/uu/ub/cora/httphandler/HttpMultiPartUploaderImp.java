@@ -25,7 +25,6 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
-import java.net.ProtocolException;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -167,15 +166,4 @@ public final class HttpMultiPartUploaderImp implements HttpMultiPartUploader {
 		writer.append("--" + BOUNDARY + "--").append(LINE_FEED);
 		writer.close();
 	}
-
-	@Override
-	public void setRequestMethod(String requestMethod) {
-		try {
-			urlConnection.setRequestMethod(requestMethod);
-		} catch (ProtocolException e) {
-			throw new RuntimeException(requestMethod + " is not a valid request method.", e);
-		}
-
-	}
-
 }

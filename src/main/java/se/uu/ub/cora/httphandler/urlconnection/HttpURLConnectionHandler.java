@@ -42,6 +42,14 @@ public class HttpURLConnectionHandler {
 		}
 	}
 
+	public InputStream getResponseBinary() {
+		try {
+			return urlConnection.getInputStream();
+		} catch (IOException e) {
+			throw new RuntimeException("Error reading binary from response.", e);
+		}
+	}
+
 	private String tryToGetResponseText() throws IOException {
 		InputStream inputStream = urlConnection.getInputStream();
 		return getTextFromInputStream(inputStream);
@@ -80,4 +88,5 @@ public class HttpURLConnectionHandler {
 			return STATUS_INTERNAL_SERVER_ERROR;
 		}
 	}
+
 }

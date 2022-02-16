@@ -47,12 +47,4 @@ public interface HttpMultiPartUploader {
 
 	void done() throws IOException;
 
-	/**
-	 * Sets the connection to the specified requestMethod
-	 * 
-	 * @param requestMetod
-	 *            It is the method to be set on the connection
-	 */
-	void setRequestMethod(String requestMethod);
-
 }

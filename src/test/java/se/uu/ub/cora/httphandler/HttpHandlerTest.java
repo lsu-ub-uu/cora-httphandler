@@ -20,6 +20,8 @@
 package se.uu.ub.cora.httphandler;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
@@ -185,4 +187,16 @@ public class HttpHandlerTest {
 		assertEquals(urlConnection.requestProperties.get("Authorization"), "Basic " + encoded);
 
 	}
+
+	@Test
+	public void testGetResponseBinary() {
+		HttpURLConnectionSpy urlConnection = new HttpURLConnectionSpy(url);
+		HttpHandler httpHandler = HttpHandlerImp.usingURLConnection(urlConnection);
+
+		urlConnection.setResponseText("some text åäö");
+		InputStream responseBinary = httpHandler.getResponseBinary();
+		assertNotNull(responseBinary);
+		assertSame(responseBinary, urlConnection.returnedInputStream);
+	}
+
 }

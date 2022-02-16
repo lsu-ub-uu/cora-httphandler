@@ -70,6 +70,11 @@ public final class HttpHandlerImp implements HttpHandler {
 	}
 
 	@Override
+	public InputStream getResponseBinary() {
+		return httpURLConnectionHandler.getResponseBinary();
+	}
+
+	@Override
 	public void setOutput(String outputString) {
 		try {
 			tryToSetOutput(outputString);
