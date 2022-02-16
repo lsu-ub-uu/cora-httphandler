@@ -170,12 +170,10 @@ public final class HttpMultiPartUploaderImp implements HttpMultiPartUploader {
 
 	@Override
 	public void setRequestMethod(String requestMethod) {
-		// TODO Auto-generated method stub
 		try {
 			urlConnection.setRequestMethod(requestMethod);
 		} catch (ProtocolException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new RuntimeException(requestMethod + " is not a valid request method.", e);
 		}
 
 	}
