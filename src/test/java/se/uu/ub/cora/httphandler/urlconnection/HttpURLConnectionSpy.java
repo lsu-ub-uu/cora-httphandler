@@ -59,6 +59,8 @@ public class HttpURLConnectionSpy extends HttpURLConnection {
 
 	public ByteArrayInputStream returnedInputStream;
 
+	public String methodCalled;
+
 	public HttpURLConnectionSpy(URL url) {
 		super(url);
 	}
@@ -92,6 +94,7 @@ public class HttpURLConnectionSpy extends HttpURLConnection {
 
 	@Override
 	public int getResponseCode() throws IOException {
+		methodCalled = "getResponseCode";
 		return responseCode;
 	}
 
@@ -101,6 +104,7 @@ public class HttpURLConnectionSpy extends HttpURLConnection {
 
 	@Override
 	public InputStream getInputStream() throws IOException {
+		methodCalled = "getInputStream";
 		returnedInputStream = new ByteArrayInputStream(
 				responseText.getBytes(StandardCharsets.UTF_8));
 		return returnedInputStream;
@@ -134,6 +138,7 @@ public class HttpURLConnectionSpy extends HttpURLConnection {
 
 	@Override
 	public InputStream getErrorStream() {
+		methodCalled = "getErrorStream";
 		return new ByteArrayInputStream(errorText.getBytes(StandardCharsets.UTF_8));
 	}
 
