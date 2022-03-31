@@ -219,4 +219,5 @@ public class HttpMultiPartUploaderTest {
 			assertEquals(e.getMessage(), "Error getting response text: ");
 		}
 	}
+
 }

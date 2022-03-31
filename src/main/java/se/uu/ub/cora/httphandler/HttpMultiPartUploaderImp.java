@@ -166,5 +166,4 @@ public final class HttpMultiPartUploaderImp implements HttpMultiPartUploader {
 		writer.append("--" + BOUNDARY + "--").append(LINE_FEED);
 		writer.close();
 	}
-
 }

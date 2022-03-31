@@ -23,11 +23,27 @@ import java.io.InputStream;
 
 public interface HttpHandler {
 
-	void setRequestMethod(String requestMetod);
-
-	String getResponseText();
+	void setRequestMethod(String requestMethod);
 
 	int getResponseCode();
+
+	/**
+	 * Reads a String from the Response from a call to a Http service
+	 * 
+	 * Can throw a {@link RuntimeException} if any problem occurs while reading the String
+	 * 
+	 * @return
+	 */
+	String getResponseText();
+
+	/**
+	 * Reads a binary from the Response from a call to a Http service
+	 * 
+	 * Can throw a {@link RuntimeException} if any problem occurs while reading the binary
+	 * 
+	 * @return
+	 */
+	InputStream getResponseBinary();
 
 	void setOutput(String outputString);
 
