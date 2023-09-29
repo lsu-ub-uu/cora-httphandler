@@ -33,7 +33,7 @@ import se.uu.ub.cora.httphandler.urlconnection.HttpURLConnectionHandler;
 
 public final class HttpHandlerImp implements HttpHandler {
 
-	private static final int INITIAL_BUFFER_SIZE = 4096;
+	private static final int INITIAL_BUFFER_SIZE = 8192;
 	private HttpURLConnection urlConnection;
 	private HttpURLConnectionHandler httpURLConnectionHandler;
 
