@@ -30,7 +30,9 @@
 	<packaging>jar</packaging>
 
 	<name>httphandler</name>
-
+	<properties>
+		<testutils.version>1.10.0</testutils.version>
+	</properties>
 	<scm>
 		<connection>scm:git:https://github.com/lsu-ub-uu/cora-httphandler.git</connection>
 		<developerConnection>scm:git:https://github.com/lsu-ub-uu/cora-httphandler.git</developerConnection>
@@ -39,6 +41,12 @@
   </scm>
 
 	<dependencies>
+		<dependency>
+			<groupId>se.uu.ub.cora</groupId>
+			<artifactId>testutils</artifactId>
+			<version>${testutils.version}</version>
+			<scope>test</scope>
+		</dependency>
 		<dependency>
 			<groupId>org.testng</groupId>
 			<artifactId>testng</artifactId>

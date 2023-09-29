@@ -91,7 +91,7 @@ public class HttpMultiPartUploaderTest {
 		httpHandler.done();
 
 		assertFalse(urlConnection.usecaches.get(0));
-		assertTrue(urlConnection.dooutput.get(0));
+		urlConnection.MCR.assertParameters("setDoOutput", 0, true);
 		assertTrue(urlConnection.doinput.get(0));
 		assertEquals(urlConnection.requestProperties.get("Content-Type"),
 				"multipart/form-data; boundary=xxxYYYxxx");
@@ -111,10 +111,10 @@ public class HttpMultiPartUploaderTest {
 		httpHandler.done();
 
 		assertEquals(urlConnection.usecaches.size(), 1);
-		assertEquals(urlConnection.dooutput.size(), 1);
+		urlConnection.MCR.assertParameters("setDoOutput", 0, true);
 		assertEquals(urlConnection.doinput.size(), 1);
 		assertEquals(urlConnection.setRequestPropertiesCalledNoTimes, 2);
-		assertEquals(urlConnection.getOutputStreamCalledNoTimes, 1);
+		urlConnection.MCR.assertNumberOfCallsToMethod("getOutputStream", 1);
 	}
 
 	@Test

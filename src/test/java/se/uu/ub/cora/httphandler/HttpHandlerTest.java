@@ -22,9 +22,7 @@ package se.uu.ub.cora.httphandler;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertSame;
-import static org.testng.Assert.assertTrue;
 
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -34,6 +32,7 @@ import java.util.Base64;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.httphandler.spy.InputStreamSpy;
 import se.uu.ub.cora.httphandler.urlconnection.HttpURLConnectionErrorSpy;
 import se.uu.ub.cora.httphandler.urlconnection.HttpURLConnectionSpy;
 
@@ -116,7 +115,7 @@ public class HttpHandlerTest {
 		HttpHandler httpHandler = HttpHandlerImp.usingURLConnection(urlConnection);
 		String str = "some text åäö";
 		httpHandler.setOutput(str);
-		assertTrue(urlConnection.dooutput.get(0));
+		urlConnection.MCR.assertParameters("setDoOutput", 0, true);
 		assertEquals(urlConnection.getOutputStreamAsString(), str);
 	}
 
@@ -140,19 +139,25 @@ public class HttpHandlerTest {
 	@Test
 	public void testSetStreamOutput() {
 		HttpURLConnectionSpy urlConnection = new HttpURLConnectionSpy(url);
+		InputStreamSpy stream = new InputStreamSpy();
 		HttpHandler httpHandler = HttpHandlerImp.usingURLConnection(urlConnection);
-		InputStream stream = new ByteArrayInputStream(
-				"a string åäö".getBytes(StandardCharsets.UTF_8));
+
 		httpHandler.setStreamOutput(stream);
-		assertTrue(urlConnection.dooutput.get(0));
-		assertEquals(urlConnection.getOutputStreamAsString(), "a string åäö");
+
+		urlConnection.MCR.assertParameters("setDoOutput", 0, true);
+		urlConnection.MCR.assertParameters("setChunkedStreamingMode", 0, 4096);
+		stream.MCR.assertParameter("transferTo", 0, "out",
+				urlConnection.MCR.getReturnValue("getOutputStream", 0));
 	}
 
 	@Test(expectedExceptions = RuntimeException.class)
-	public void testSetStreamOutputBroken() {
-		HttpURLConnectionSpy urlConnection = new HttpURLConnectionErrorSpy(url);
+	public void testSetStreamOutputBroken_ClosesStream() {
+		HttpURLConnectionSpy urlConnection = new HttpURLConnectionSpy(url);
+		RuntimeException error = new RuntimeException("someError");
+		urlConnection.MRV.setAlwaysThrowException("getOutputStream", error);
+		InputStreamSpy stream = new InputStreamSpy();
 		HttpHandler httpHandler = HttpHandlerImp.usingURLConnection(urlConnection);
-		InputStream stream = new ByteArrayInputStream("a string".getBytes(StandardCharsets.UTF_8));
+
 		httpHandler.setStreamOutput(stream);
 	}
 

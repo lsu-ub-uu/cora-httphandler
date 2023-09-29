@@ -33,7 +33,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
+
 public class HttpURLConnectionSpy extends HttpURLConnection {
+	public MethodCallRecorder MCR = new MethodCallRecorder();
+	public MethodReturnValues MRV = new MethodReturnValues();
 
 	public String requestMethod;
 
@@ -42,8 +47,6 @@ public class HttpURLConnectionSpy extends HttpURLConnection {
 	private String responseText;
 
 	private ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(999);
-
-	public List<Boolean> dooutput = new ArrayList<>();
 
 	public Map<String, String> requestProperties = new HashMap<>();
 
@@ -63,6 +66,9 @@ public class HttpURLConnectionSpy extends HttpURLConnection {
 
 	public HttpURLConnectionSpy(URL url) {
 		super(url);
+		MCR.useMRV(MRV);
+		MRV.setDefaultReturnValuesSupplier("readFileWithNameAndVersion", String::new);
+		MRV.setDefaultReturnValuesSupplier("getOutputStream", () -> byteArrayOutputStream);
 	}
 
 	@Override
@@ -112,9 +118,7 @@ public class HttpURLConnectionSpy extends HttpURLConnection {
 
 	@Override
 	public OutputStream getOutputStream() throws IOException {
-		getOutputStreamCalledNoTimes++;
-		return byteArrayOutputStream;
-
+		return (OutputStream) MCR.addCallAndReturnFromMRV();
 	}
 
 	public String getOutputStreamAsString() {
@@ -123,7 +127,7 @@ public class HttpURLConnectionSpy extends HttpURLConnection {
 
 	@Override
 	public void setDoOutput(boolean dooutput) {
-		this.dooutput.add(dooutput);
+		MCR.addCall("dooutput", dooutput);
 	}
 
 	@Override
@@ -166,6 +170,11 @@ public class HttpURLConnectionSpy extends HttpURLConnection {
 	@Override
 	public void setDoInput(boolean doinput) {
 		this.doinput.add(doinput);
+	}
+
+	@Override
+	public void setChunkedStreamingMode(int chunklen) {
+		MCR.addCall("chunklen", chunklen);
 	}
 
 }

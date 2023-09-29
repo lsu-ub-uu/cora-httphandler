@@ -20,9 +20,9 @@
 package se.uu.ub.cora.httphandler;
 
 import java.io.BufferedWriter;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.ProtocolException;
@@ -113,13 +113,9 @@ public final class HttpHandlerImp implements HttpHandler {
 
 	private void tryToSetStreamOutput(InputStream stream) throws IOException {
 		urlConnection.setDoOutput(true);
-		try (DataOutputStream wr = new DataOutputStream(urlConnection.getOutputStream())) {
-			byte[] buffer = new byte[INITIAL_BUFFER_SIZE];
-			int n;
-			while ((n = stream.read(buffer)) > 0) {
-				wr.write(buffer, 0, n);
-			}
-			wr.flush();
+		urlConnection.setChunkedStreamingMode(INITIAL_BUFFER_SIZE);
+		try (OutputStream wr = urlConnection.getOutputStream()) {
+			stream.transferTo(wr);
 		}
 	}
 
