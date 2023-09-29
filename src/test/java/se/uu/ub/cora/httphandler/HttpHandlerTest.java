@@ -145,7 +145,7 @@ public class HttpHandlerTest {
 		httpHandler.setStreamOutput(stream);
 
 		urlConnection.MCR.assertParameters("setDoOutput", 0, true);
-		urlConnection.MCR.assertParameters("setChunkedStreamingMode", 0, 4096);
+		urlConnection.MCR.assertParameters("setChunkedStreamingMode", 0, 8192);
 		stream.MCR.assertParameter("transferTo", 0, "out",
 				urlConnection.MCR.getReturnValue("getOutputStream", 0));
 	}
