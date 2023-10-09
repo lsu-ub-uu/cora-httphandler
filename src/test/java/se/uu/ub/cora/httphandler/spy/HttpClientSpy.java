@@ -16,108 +16,108 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.httphandler;
+package se.uu.ub.cora.httphandler.spy;
 
-import java.net.URI;
-import java.net.http.HttpClient.Version;
+import java.io.IOException;
+import java.net.Authenticator;
+import java.net.CookieHandler;
+import java.net.ProxySelector;
+import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
-import java.net.http.HttpRequest.BodyPublisher;
-import java.net.http.HttpRequest.Builder;
+import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandler;
+import java.net.http.HttpResponse.PushPromiseHandler;
 import java.time.Duration;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLParameters;
 
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public class BuilderSpy implements Builder {
+public class HttpClientSpy extends HttpClient {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
 
-	public BuilderSpy() {
+	public HttpClientSpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("method", BuilderSpy::new);
-		MRV.setDefaultReturnValuesSupplier("build", HttpRequestSpy::new);
-
+		MRV.setDefaultReturnValuesSupplier("send", HttpResponseSpy<String>::new);
 	}
 
 	@Override
-	public Builder uri(URI uri) {
+	public Optional<CookieHandler> cookieHandler() {
+		// TODO Auto-generated method stub
+		return Optional.empty();
+	}
+
+	@Override
+	public Optional<Duration> connectTimeout() {
+		// TODO Auto-generated method stub
+		return Optional.empty();
+	}
+
+	@Override
+	public Redirect followRedirects() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Builder expectContinue(boolean enable) {
+	public Optional<ProxySelector> proxy() {
+		// TODO Auto-generated method stub
+		return Optional.empty();
+	}
+
+	@Override
+	public SSLContext sslContext() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Builder version(Version version) {
+	public SSLParameters sslParameters() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Builder header(String name, String value) {
+	public Optional<Authenticator> authenticator() {
+		// TODO Auto-generated method stub
+		return Optional.empty();
+	}
+
+	@Override
+	public Version version() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Builder headers(String... headers) {
+	public Optional<Executor> executor() {
+		// TODO Auto-generated method stub
+		return Optional.empty();
+	}
+
+	@Override
+	public <T> HttpResponse<T> send(HttpRequest request, BodyHandler<T> responseBodyHandler)
+			throws IOException, InterruptedException {
+		return (HttpResponse<T>) MCR.addCallAndReturnFromMRV("request", request,
+				"responseBodyHandler", responseBodyHandler);
+	}
+
+	@Override
+	public <T> CompletableFuture<HttpResponse<T>> sendAsync(HttpRequest request,
+			BodyHandler<T> responseBodyHandler) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Builder timeout(Duration duration) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Builder setHeader(String name, String value) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Builder GET() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Builder POST(BodyPublisher bodyPublisher) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Builder PUT(BodyPublisher bodyPublisher) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Builder DELETE() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Builder method(String method, BodyPublisher bodyPublisher) {
-		return (Builder) MCR.addCallAndReturnFromMRV("method", method, "bodyPublisher",
-				bodyPublisher);
-	}
-
-	@Override
-	public HttpRequest build() {
-		return (HttpRequest) MCR.addCallAndReturnFromMRV();
-	}
-
-	@Override
-	public Builder copy() {
+	public <T> CompletableFuture<HttpResponse<T>> sendAsync(HttpRequest request,
+			BodyHandler<T> responseBodyHandler, PushPromiseHandler<T> pushPromiseHandler) {
 		// TODO Auto-generated method stub
 		return null;
 	}

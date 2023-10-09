@@ -36,6 +36,10 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.httphandler.internal.HttpHandlerImp;
+import se.uu.ub.cora.httphandler.spy.BuilderSpy;
+import se.uu.ub.cora.httphandler.spy.HttpClientSpy;
+import se.uu.ub.cora.httphandler.spy.HttpRequestSpy;
+import se.uu.ub.cora.httphandler.spy.HttpResponseSpy;
 import se.uu.ub.cora.httphandler.spy.InputStreamSpy;
 import se.uu.ub.cora.httphandler.urlconnection.HttpURLConnectionErrorSpy;
 import se.uu.ub.cora.httphandler.urlconnection.HttpURLConnectionSpy;
@@ -97,19 +101,19 @@ public class HttpHandlerTest {
 	}
 
 	@Test
-	public void testSetRequestMethodAndGetResponseCodeThrowsRuntimeExceptionOnError() {
+	public void testSetRequestMethodAndGetResponseCodeShouldBe500OnError() {
 		RuntimeException sendException = new RuntimeException("someMessage");
 		httpClientSpy.MRV.setAlwaysThrowException("send", sendException);
 
 		httpHandler.setRequestMethod("GET");
-		try {
-			httpHandler.getResponseCode();
-			fail("Exception should have been thrown");
-		} catch (Exception e) {
-			assertTrue(e instanceof RuntimeException);
-			assertEquals(e.getCause(), sendException);
-			assertEquals(e.getMessage(), "Error getting response code: ");
-		}
+		// try {
+		assertEquals(httpHandler.getResponseCode(), 500);
+		// fail("Exception should have been thrown");
+		// } catch (Exception e) {
+		// assertTrue(e instanceof RuntimeException);
+		// assertEquals(e.getCause(), sendException);
+		// assertEquals(e.getMessage(), "Error getting response code: ");
+		// }
 	}
 
 	private HttpResponseSpy<String> assertSendOnHttpClientReturnResponseSpy() {

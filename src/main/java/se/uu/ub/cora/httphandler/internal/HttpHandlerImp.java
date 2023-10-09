@@ -101,10 +101,13 @@ public final class HttpHandlerImp implements HttpHandler {
 
 	@Override
 	public int getResponseCode() {
+		// return httpURLConnectionHandler.getResponseCode();
+		// TODO: response code when problem should be 500
 		try {
 			return tryToGetResponseCode();
 		} catch (Exception e) {
-			throw new RuntimeException("Error getting response code: ", e);
+			// throw new RuntimeException("Error getting response code: ", e);
+			return 500;
 		}
 	}
 
