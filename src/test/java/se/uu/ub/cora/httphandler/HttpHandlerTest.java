@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2019 Uppsala University Library
+ * Copyright 2016, 2019, 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -22,34 +22,119 @@ package se.uu.ub.cora.httphandler;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertSame;
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.http.HttpResponse.BodyHandler;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.httphandler.internal.HttpHandlerImp;
 import se.uu.ub.cora.httphandler.spy.InputStreamSpy;
 import se.uu.ub.cora.httphandler.urlconnection.HttpURLConnectionErrorSpy;
 import se.uu.ub.cora.httphandler.urlconnection.HttpURLConnectionSpy;
 
 public class HttpHandlerTest {
+
+	private static final String PUBLISHER_NO_BODY = "jdk.internal.net.http.RequestPublishers$EmptyPublisher";
 	private URL url;
+	private BuilderSpy builderSpy;
+	private HttpClientSpy httpClientSpy;
+	private HttpHandler httpHandler;
 
 	@BeforeMethod
 	public void setUp() throws MalformedURLException {
 		url = new URL("http://google.se");
+		builderSpy = new BuilderSpy();
+		httpClientSpy = new HttpClientSpy();
+		httpHandler = HttpHandlerImp.usingBuilderAndHttpClient(builderSpy, httpClientSpy);
 	}
 
 	@Test
-	public void testSetRequestMethod() {
-		HttpURLConnectionSpy urlConnection = new HttpURLConnectionSpy(url);
-		HttpHandler httpHandler = HttpHandlerImp.usingURLConnection(urlConnection);
+	public void testSetRequestMethodAndGetResponseText() {
 		httpHandler.setRequestMethod("GET");
-		assertEquals(urlConnection.requestMethod, "GET");
+		String responseText = httpHandler.getResponseText();
+
+		assertRequestMethodHasBeenSetInBuilder("GET");
+		assertCreatedBodyPublisherIs(PUBLISHER_NO_BODY);
+		HttpResponseSpy<String> responseSpy = assertSendOnHttpClientReturnResponseSpy();
+
+		responseSpy.MCR.assertReturn("body", 0, responseText);
+	}
+
+	@Test
+	public void testSetRequestMethodAndGetResponseTextThrowsRuntimeExceptionOnError() {
+		RuntimeException sendException = new RuntimeException("someMessage");
+		httpClientSpy.MRV.setAlwaysThrowException("send", sendException);
+
+		httpHandler.setRequestMethod("GET");
+		try {
+			httpHandler.getResponseText();
+			fail("Exception should have been thrown");
+		} catch (Exception e) {
+			assertTrue(e instanceof RuntimeException);
+			assertEquals(e.getCause(), sendException);
+			assertEquals(e.getMessage(), "Error getting response text: ");
+		}
+	}
+
+	@Test
+	public void testSetRequestMethodAndGetResponseCode() {
+		httpHandler.setRequestMethod("GET");
+		int responseCode = httpHandler.getResponseCode();
+
+		assertRequestMethodHasBeenSetInBuilder("GET");
+		assertCreatedBodyPublisherIs(PUBLISHER_NO_BODY);
+		HttpResponseSpy<String> responseSpy = assertSendOnHttpClientReturnResponseSpy();
+
+		responseSpy.MCR.assertReturn("statusCode", 0, responseCode);
+	}
+
+	@Test
+	public void testSetRequestMethodAndGetResponseCodeThrowsRuntimeExceptionOnError() {
+		RuntimeException sendException = new RuntimeException("someMessage");
+		httpClientSpy.MRV.setAlwaysThrowException("send", sendException);
+
+		httpHandler.setRequestMethod("GET");
+		try {
+			httpHandler.getResponseCode();
+			fail("Exception should have been thrown");
+		} catch (Exception e) {
+			assertTrue(e instanceof RuntimeException);
+			assertEquals(e.getCause(), sendException);
+			assertEquals(e.getMessage(), "Error getting response code: ");
+		}
+	}
+
+	private HttpResponseSpy<String> assertSendOnHttpClientReturnResponseSpy() {
+		BuilderSpy builder2Spy = (BuilderSpy) builderSpy.MCR.getReturnValue("method", 0);
+		HttpRequestSpy httpRequestSpy = (HttpRequestSpy) builder2Spy.MCR.getReturnValue("build", 0);
+		httpClientSpy.MCR.assertParameter("send", 0, "request", httpRequestSpy);
+
+		// will not work if not bodyHandler of string
+		BodyHandler<String> bodyHandler = (BodyHandler<String>) httpClientSpy.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName("send", 0,
+						"responseBodyHandler");
+		// assertEquals(bodyHandler.getClass().getName(), "");
+		// assertEquals(bodyHandler.getClass().getName(), "");
+
+		return (HttpResponseSpy<String>) httpClientSpy.MCR.getReturnValue("send", 0);
+	}
+
+	private void assertCreatedBodyPublisherIs(String publisherType) {
+		var bodyPublisher = builderSpy.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName("method", 0, "bodyPublisher");
+		assertEquals(bodyPublisher.getClass().getName(), publisherType);
+	}
+
+	private void assertRequestMethodHasBeenSetInBuilder(String requestMethod) {
+		builderSpy.MCR.assertParameter("method", 0, "method", requestMethod);
 	}
 
 	@Test(expectedExceptions = RuntimeException.class)

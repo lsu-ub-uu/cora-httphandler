@@ -17,7 +17,7 @@
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package se.uu.ub.cora.httphandler;
+package se.uu.ub.cora.httphandler.internal;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,6 +29,7 @@ import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
+import se.uu.ub.cora.httphandler.HttpMultiPartUploader;
 import se.uu.ub.cora.httphandler.urlconnection.HttpURLConnectionHandler;
 
 public final class HttpMultiPartUploaderImp implements HttpMultiPartUploader {
