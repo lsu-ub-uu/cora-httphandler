@@ -19,15 +19,14 @@
 
 package se.uu.ub.cora.httphandler.internal;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublisher;
+import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpRequest.Builder;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
@@ -46,6 +45,7 @@ public final class HttpHandlerImp implements HttpHandler {
 	private Builder builder;
 	private HttpClient httpClient;
 	private String requestMetod;
+	private HttpResponse<?> response;
 	private BodyPublisher bodyPublisher = HttpRequest.BodyPublishers.noBody();
 	private static final List<String> REQUEST_METHODS = List.of("GET", "HEAD", "POST", "PUT",
 			"DELETE", "PATCH");
@@ -92,15 +92,19 @@ public final class HttpHandlerImp implements HttpHandler {
 
 	private String tryToGetResponseText() throws IOException, InterruptedException {
 		BodyHandler<String> bodyHandler = HttpResponse.BodyHandlers.ofString();
-		HttpResponse<String> response = buildRequestAndSend(bodyHandler);
-		return response.body();
+		possiblyBuildRequestAndSend(bodyHandler);
+		return (String) response.body();
 	}
 
-	private <T> HttpResponse<T> buildRequestAndSend(BodyHandler<T> bodyHandler)
+	private void possiblyBuildRequestAndSend(BodyHandler<?> bodyHandler)
 			throws IOException, InterruptedException {
+		if (response != null) {
+			return;
+		}
+
 		Builder methodBuilder = builder.method(requestMetod, bodyPublisher);
 		HttpRequest httpRequest = methodBuilder.build();
-		return httpClient.send(httpRequest, bodyHandler);
+		response = httpClient.send(httpRequest, bodyHandler);
 	}
 
 	@Override
@@ -114,31 +118,38 @@ public final class HttpHandlerImp implements HttpHandler {
 
 	private int tryToGetResponseCode() throws IOException, InterruptedException {
 		BodyHandler<String> bodyHandler = HttpResponse.BodyHandlers.ofString();
-		HttpResponse<String> response = buildRequestAndSend(bodyHandler);
+		possiblyBuildRequestAndSend(bodyHandler);
 		return response.statusCode();
 	}
 
 	@Override
 	public InputStream getResponseBinary() {
-		return httpURLConnectionHandler.getResponseBinary();
+		try {
+			return tryToGetBinary();
+		} catch (Exception e) {
+			throw new RuntimeException("Error getting response binary: ", e);
+		}
+	}
+
+	private InputStream tryToGetBinary() throws IOException, InterruptedException {
+		BodyHandler<InputStream> bodyHandler = HttpResponse.BodyHandlers.ofInputStream();
+		possiblyBuildRequestAndSend(bodyHandler);
+		return (InputStream) response.body();
 	}
 
 	@Override
 	public void setOutput(String outputString) {
 		try {
 			tryToSetOutput(outputString);
-		} catch (IOException e) {
-			throw new RuntimeException("Error writing output: ", e);
+		} catch (Exception e) {
+			throw new RuntimeException("Error setting output: ", e);
 		}
 	}
 
-	private void tryToSetOutput(String outputString) throws IOException {
-		urlConnection.setDoOutput(true);
-		try (BufferedWriter bwr = new BufferedWriter(
-				new OutputStreamWriter(urlConnection.getOutputStream(), StandardCharsets.UTF_8))) {
-			bwr.write(outputString);
-			bwr.flush();
-		}
+	private void tryToSetOutput(String outputString) throws IOException, InterruptedException {
+		bodyPublisher = BodyPublishers.ofString(outputString);
+		BodyHandler<String> bodyHandler = HttpResponse.BodyHandlers.ofString();
+		possiblyBuildRequestAndSend(bodyHandler);
 	}
 
 	@Override
