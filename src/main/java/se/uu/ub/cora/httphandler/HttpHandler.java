@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2019 Uppsala University Library
+ * Copyright 2016, 2019, 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -21,18 +21,44 @@ package se.uu.ub.cora.httphandler;
 
 import java.io.InputStream;
 
+/**
+ * HttpHandler is an interface to do a single http request to a specified url. HttpHandlers should
+ * be factored by using a {@link HttpHandlerFactory} usually {@link HttpHandlerFactoryImp}.
+ * <p>
+ * There is an order that is needed to use HttpHandler, correctly.
+ * <ol>
+ * <li>Factor a HttpHandler using the HttpHandlerFactory</li>
+ * <li>Set the requestMethod using the {@link #setRequestMethod(String)}</li>
+ * <li>...</li>
+ * </ol>
+ */
 public interface HttpHandler {
-
+	/**
+	 * setRequestMethod set the request method to use in the http request.
+	 * 
+	 * @param requestMethod
+	 *            A String with the requestMethod to use.
+	 */
 	void setRequestMethod(String requestMethod);
 
+	/**
+	 * getResponseCode returns the response code for the request, or 500 if there is a problem with
+	 * the request.
+	 * <p>
+	 * getResponseCode triggers the request to be sent, if it has not been sent since before.
+	 * 
+	 * @return An int with the response code from the request or 500 if something has gone wrong.
+	 */
 	int getResponseCode();
 
 	/**
 	 * Reads a String from the Response from a call to a Http service
+	 * <p>
+	 * getResponseText triggers the request to be sent, if it has not been sent since before.
 	 * 
 	 * Can throw a {@link RuntimeException} if any problem occurs while reading the String
 	 * 
-	 * @return
+	 * @return A String with the response text from the request
 	 */
 	String getResponseText();
 

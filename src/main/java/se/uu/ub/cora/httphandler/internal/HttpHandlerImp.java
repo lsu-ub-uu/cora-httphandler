@@ -25,14 +25,15 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
-import java.net.ProtocolException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpRequest.Builder;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.List;
 
 import se.uu.ub.cora.httphandler.HttpHandler;
 import se.uu.ub.cora.httphandler.urlconnection.HttpURLConnectionHandler;
@@ -45,6 +46,9 @@ public final class HttpHandlerImp implements HttpHandler {
 	private Builder builder;
 	private HttpClient httpClient;
 	private String requestMetod;
+	private BodyPublisher bodyPublisher = HttpRequest.BodyPublishers.noBody();
+	private static final List<String> REQUEST_METHODS = List.of("GET", "HEAD", "POST", "PUT",
+			"DELETE", "PATCH");
 
 	private HttpHandlerImp(HttpURLConnection httpUrlConnection) {
 		this.urlConnection = httpUrlConnection;
@@ -66,20 +70,15 @@ public final class HttpHandlerImp implements HttpHandler {
 
 	@Override
 	public void setRequestMethod(String requestMetod) {
-		try {
-			tryToSetRequestMethod(requestMetod);
-		} catch (Exception e) {
-			throw new RuntimeException("Not an ok requestMethod: ", e);
+		if (!REQUEST_METHODS.contains(requestMetod)) {
+			throw new RuntimeException("Not an ok requestMethod: " + requestMetod);
 		}
+		this.requestMetod = requestMetod;
 	}
 
-	private void tryToSetRequestMethod(String requestMetod) throws ProtocolException {
-		this.requestMetod = requestMetod;
-		// urlConnection.setRequestMethod(requestMetod);
-		// builder.method(requestMetod, HttpRequest.BodyPublishers.noBody());
-		// builder.method(requestMetod, HttpRequest.BodyPublishers.ofString(body));
-		// builder.method(requestMetod, HttpRequest.BodyPublishers.ofInputStream(stream));
-
+	@Override
+	public void setRequestProperty(String key, String value) {
+		urlConnection.setRequestProperty(key, value);
 	}
 
 	@Override
@@ -92,30 +91,30 @@ public final class HttpHandlerImp implements HttpHandler {
 	}
 
 	private String tryToGetResponseText() throws IOException, InterruptedException {
-		BodyHandler<String> ofString = HttpResponse.BodyHandlers.ofString();
-		Builder methodBuilder = builder.method(requestMetod, HttpRequest.BodyPublishers.noBody());
-		HttpRequest httpRequest = methodBuilder.build();
-		HttpResponse<String> response = httpClient.send(httpRequest, ofString);
+		BodyHandler<String> bodyHandler = HttpResponse.BodyHandlers.ofString();
+		HttpResponse<String> response = buildRequestAndSend(bodyHandler);
 		return response.body();
+	}
+
+	private <T> HttpResponse<T> buildRequestAndSend(BodyHandler<T> bodyHandler)
+			throws IOException, InterruptedException {
+		Builder methodBuilder = builder.method(requestMetod, bodyPublisher);
+		HttpRequest httpRequest = methodBuilder.build();
+		return httpClient.send(httpRequest, bodyHandler);
 	}
 
 	@Override
 	public int getResponseCode() {
-		// return httpURLConnectionHandler.getResponseCode();
-		// TODO: response code when problem should be 500
 		try {
 			return tryToGetResponseCode();
 		} catch (Exception e) {
-			// throw new RuntimeException("Error getting response code: ", e);
 			return 500;
 		}
 	}
 
 	private int tryToGetResponseCode() throws IOException, InterruptedException {
-		BodyHandler<String> ofString = HttpResponse.BodyHandlers.ofString();
-		Builder methodBuilder = builder.method(requestMetod, HttpRequest.BodyPublishers.noBody());
-		HttpRequest httpRequest = methodBuilder.build();
-		HttpResponse<String> response = httpClient.send(httpRequest, ofString);
+		BodyHandler<String> bodyHandler = HttpResponse.BodyHandlers.ofString();
+		HttpResponse<String> response = buildRequestAndSend(bodyHandler);
 		return response.statusCode();
 	}
 
@@ -140,11 +139,6 @@ public final class HttpHandlerImp implements HttpHandler {
 			bwr.write(outputString);
 			bwr.flush();
 		}
-	}
-
-	@Override
-	public void setRequestProperty(String key, String value) {
-		urlConnection.setRequestProperty(key, value);
 	}
 
 	@Override

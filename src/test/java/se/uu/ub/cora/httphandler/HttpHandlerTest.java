@@ -73,6 +73,20 @@ public class HttpHandlerTest {
 	}
 
 	@Test
+	public void testSetRequestMethodBadRequestMethodThrowsRuntimeException() {
+		RuntimeException sendException = new RuntimeException("someMessage");
+		httpClientSpy.MRV.setAlwaysThrowException("send", sendException);
+
+		try {
+			httpHandler.setRequestMethod("UNKNOWN_REQUEST_METHOD");
+			fail("Exception should have been thrown");
+		} catch (Exception e) {
+			assertTrue(e instanceof RuntimeException);
+			assertEquals(e.getMessage(), "Not an ok requestMethod: UNKNOWN_REQUEST_METHOD");
+		}
+	}
+
+	@Test
 	public void testSetRequestMethodAndGetResponseTextThrowsRuntimeExceptionOnError() {
 		RuntimeException sendException = new RuntimeException("someMessage");
 		httpClientSpy.MRV.setAlwaysThrowException("send", sendException);
@@ -106,14 +120,8 @@ public class HttpHandlerTest {
 		httpClientSpy.MRV.setAlwaysThrowException("send", sendException);
 
 		httpHandler.setRequestMethod("GET");
-		// try {
+
 		assertEquals(httpHandler.getResponseCode(), 500);
-		// fail("Exception should have been thrown");
-		// } catch (Exception e) {
-		// assertTrue(e instanceof RuntimeException);
-		// assertEquals(e.getCause(), sendException);
-		// assertEquals(e.getMessage(), "Error getting response code: ");
-		// }
 	}
 
 	private HttpResponseSpy<String> assertSendOnHttpClientReturnResponseSpy() {
@@ -141,21 +149,21 @@ public class HttpHandlerTest {
 		builderSpy.MCR.assertParameter("method", 0, "method", requestMethod);
 	}
 
-	@Test(expectedExceptions = RuntimeException.class)
-	public void testSetWrongRequestMethod() {
-		HttpURLConnectionSpy urlConnection = new HttpURLConnectionErrorSpy(url);
-		HttpHandler httpHandler = HttpHandlerImp.usingURLConnection(urlConnection);
-		httpHandler.setRequestMethod("NOT_A_REQUEST_METHOD");
-	}
+	// @Test(expectedExceptions = RuntimeException.class)
+	// public void testSetWrongRequestMethod() {
+	// HttpURLConnectionSpy urlConnection = new HttpURLConnectionErrorSpy(url);
+	// HttpHandler httpHandler = HttpHandlerImp.usingURLConnection(urlConnection);
+	// httpHandler.setRequestMethod("NOT_A_REQUEST_METHOD");
+	// }
 
-	@Test
-	public void testGetResponseCode() {
-		HttpURLConnectionSpy urlConnection = new HttpURLConnectionSpy(url);
-		HttpHandler httpHandler = HttpHandlerImp.usingURLConnection(urlConnection);
-
-		urlConnection.setResponseCode(200);
-		assertEquals(httpHandler.getResponseCode(), 200);
-	}
+	// @Test
+	// public void testGetResponseCode() {
+	// HttpURLConnectionSpy urlConnection = new HttpURLConnectionSpy(url);
+	// HttpHandler httpHandler = HttpHandlerImp.usingURLConnection(urlConnection);
+	//
+	// urlConnection.setResponseCode(200);
+	// assertEquals(httpHandler.getResponseCode(), 200);
+	// }
 
 	@Test
 	public void testGetBrokenResponseCode() {
@@ -164,14 +172,14 @@ public class HttpHandlerTest {
 		assertEquals(httpHandler.getResponseCode(), 500);
 	}
 
-	@Test
-	public void testGetResponseText() {
-		HttpURLConnectionSpy urlConnection = new HttpURLConnectionSpy(url);
-		HttpHandler httpHandler = HttpHandlerImp.usingURLConnection(urlConnection);
-
-		urlConnection.setResponseText("some text åäö");
-		assertEquals(httpHandler.getResponseText(), "some text åäö");
-	}
+	// @Test
+	// public void testGetResponseText() {
+	// HttpURLConnectionSpy urlConnection = new HttpURLConnectionSpy(url);
+	// HttpHandler httpHandler = HttpHandlerImp.usingURLConnection(urlConnection);
+	//
+	// urlConnection.setResponseText("some text åäö");
+	// assertEquals(httpHandler.getResponseText(), "some text åäö");
+	// }
 
 	@Test(expectedExceptions = RuntimeException.class)
 	public void testGetBrokenResponseText() {
