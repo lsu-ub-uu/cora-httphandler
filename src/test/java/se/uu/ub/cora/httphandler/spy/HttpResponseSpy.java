@@ -20,7 +20,6 @@ public class HttpResponseSpy<T> implements HttpResponse<T> {
 		MCR.useMRV(MRV);
 		MRV.setDefaultReturnValuesSupplier("body", String::new);
 		MRV.setDefaultReturnValuesSupplier("statusCode", () -> 200);
-
 	}
 
 	@Override
@@ -42,8 +41,7 @@ public class HttpResponseSpy<T> implements HttpResponse<T> {
 
 	@Override
 	public HttpHeaders headers() {
-		// TODO Auto-generated method stub
-		return null;
+		return (HttpHeaders) MCR.addCallAndReturnFromMRV();
 	}
 
 	@Override

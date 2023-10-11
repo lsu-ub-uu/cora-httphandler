@@ -21,7 +21,6 @@ package se.uu.ub.cora.httphandler.internal;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -78,7 +77,8 @@ public final class HttpHandlerImp implements HttpHandler {
 
 	@Override
 	public void setRequestProperty(String key, String value) {
-		urlConnection.setRequestProperty(key, value);
+		builder.setHeader(key, value);
+		// urlConnection.setRequestProperty(key, value);
 	}
 
 	@Override
@@ -91,9 +91,9 @@ public final class HttpHandlerImp implements HttpHandler {
 	}
 
 	private String tryToGetResponseText() throws IOException, InterruptedException {
-		BodyHandler<String> bodyHandler = HttpResponse.BodyHandlers.ofString();
+		BodyHandler<InputStream> bodyHandler = HttpResponse.BodyHandlers.ofInputStream();
 		possiblyBuildRequestAndSend(bodyHandler);
-		return (String) response.body();
+		return new String(((InputStream) response.body()).readAllBytes(), StandardCharsets.UTF_8);
 	}
 
 	private void possiblyBuildRequestAndSend(BodyHandler<?> bodyHandler)
@@ -117,7 +117,7 @@ public final class HttpHandlerImp implements HttpHandler {
 	}
 
 	private int tryToGetResponseCode() throws IOException, InterruptedException {
-		BodyHandler<String> bodyHandler = HttpResponse.BodyHandlers.ofString();
+		BodyHandler<InputStream> bodyHandler = HttpResponse.BodyHandlers.ofInputStream();
 		possiblyBuildRequestAndSend(bodyHandler);
 		return response.statusCode();
 	}
@@ -154,29 +154,32 @@ public final class HttpHandlerImp implements HttpHandler {
 
 	@Override
 	public String getErrorText() {
-		return httpURLConnectionHandler.getErrorText();
+		return getResponseText();
 	}
 
 	@Override
 	public void setStreamOutput(InputStream stream) {
 		try {
 			tryToSetStreamOutput(stream);
-		} catch (IOException e) {
+		} catch (Exception e) {
 			throw new RuntimeException("Error writing output from stream: ", e);
 		}
 	}
 
-	private void tryToSetStreamOutput(InputStream stream) throws IOException {
-		urlConnection.setDoOutput(true);
-		urlConnection.setChunkedStreamingMode(INITIAL_BUFFER_SIZE);
-		try (OutputStream wr = urlConnection.getOutputStream()) {
-			stream.transferTo(wr);
-		}
+	private void tryToSetStreamOutput(InputStream stream) throws IOException, InterruptedException {
+		bodyPublisher = BodyPublishers.ofInputStream(() -> stream);
+		BodyHandler<InputStream> bodyHandler = HttpResponse.BodyHandlers.ofInputStream();
+		possiblyBuildRequestAndSend(bodyHandler);
 	}
 
 	@Override
 	public String getHeaderField(String name) {
-		return urlConnection.getHeaderField(name);
+		try {
+			return response.headers().firstValue(name).orElse(null);
+		} catch (Exception e) {
+			throw new RuntimeException("No response to get header from: ", e);
+		}
+		// return urlConnection.getHeaderField(name);
 	}
 
 	@Override

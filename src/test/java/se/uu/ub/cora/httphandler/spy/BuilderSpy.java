@@ -36,7 +36,7 @@ public class BuilderSpy implements Builder {
 		MCR.useMRV(MRV);
 		MRV.setDefaultReturnValuesSupplier("method", BuilderSpy::new);
 		MRV.setDefaultReturnValuesSupplier("build", HttpRequestSpy::new);
-
+		MRV.setDefaultReturnValuesSupplier("setHeader", BuilderSpy::new);
 	}
 
 	@Override
@@ -77,8 +77,7 @@ public class BuilderSpy implements Builder {
 
 	@Override
 	public Builder setHeader(String name, String value) {
-		// TODO Auto-generated method stub
-		return null;
+		return (Builder) MCR.addCallAndReturnFromMRV("name", name, "value", value);
 	}
 
 	@Override
