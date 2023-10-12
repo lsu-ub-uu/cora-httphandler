@@ -26,8 +26,11 @@ import static org.testng.Assert.fail;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
-import java.net.http.HttpResponse.BodyHandler;
+import java.net.http.HttpHeaders;
+import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.Builder;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
@@ -40,8 +43,6 @@ import se.uu.ub.cora.httphandler.spy.HttpClientSpy;
 import se.uu.ub.cora.httphandler.spy.HttpRequestSpy;
 import se.uu.ub.cora.httphandler.spy.HttpResponseSpy;
 import se.uu.ub.cora.httphandler.spy.InputStreamSpy;
-import se.uu.ub.cora.httphandler.urlconnection.HttpURLConnectionErrorSpy;
-import se.uu.ub.cora.httphandler.urlconnection.HttpURLConnectionSpy;
 
 public class HttpHandlerTest {
 
@@ -63,10 +64,6 @@ public class HttpHandlerTest {
 
 	@Test
 	public void testSetRequestMethodAndGetResponseText() {
-		HttpResponseSpy<InputStream> inputStreamresponseSpy = new HttpResponseSpy<>();
-		inputStreamresponseSpy.MRV.setDefaultReturnValuesSupplier("body", InputStreamSpy::new);
-		httpClientSpy.MRV.setDefaultReturnValuesSupplier("send", () -> inputStreamresponseSpy);
-
 		httpHandler.setRequestMethod("GET");
 		String responseText = httpHandler.getResponseText();
 
@@ -74,7 +71,6 @@ public class HttpHandlerTest {
 		assertCreatedBodyPublisherIs(PUBLISHER_NO_BODY);
 		HttpResponseSpy<?> responseSpy = assertSendOnHttpClientReturnResponseSpy();
 
-		// responseSpy.MCR.assertReturn("body", 0, responseText);
 		InputStreamSpy inStreamSpy = (InputStreamSpy) responseSpy.MCR.getReturnValue("body", 0);
 		byte[] bytes = (byte[]) inStreamSpy.MCR.getReturnValue("readAllBytes", 0);
 		assertEquals(responseText.getBytes(), bytes);
@@ -82,15 +78,8 @@ public class HttpHandlerTest {
 
 	@Test
 	public void testSetRequestMethodAndGetErrorText() {
-		// HttpResponseSpy<InputStream> inputStreamresponseSpy = new HttpResponseSpy<>();
-		// inputStreamresponseSpy.MRV.setDefaultReturnValuesSupplier("body", InputStreamSpy::new);
-		// httpClientSpy.MRV.setDefaultReturnValuesSupplier("send", () -> inputStreamresponseSpy);
-
-		HttpResponseSpy<String> errorResponseSpy = new HttpResponseSpy<>();
-		// errorResponseSpy.MRV.setDefaultReturnValuesSupplier("body", () -> "NoAuth");
-		errorResponseSpy.MRV.setDefaultReturnValuesSupplier("body", InputStreamSpy::new);
+		HttpResponseSpy<String> errorResponseSpy = createSetAndReturnStringResponseSpyInHttpClientSpy();
 		errorResponseSpy.MRV.setDefaultReturnValuesSupplier("statusCode", () -> 403);
-		httpClientSpy.MRV.setDefaultReturnValuesSupplier("send", () -> errorResponseSpy);
 
 		httpHandler.setRequestMethod("GET");
 		String errorText = httpHandler.getErrorText();
@@ -100,22 +89,23 @@ public class HttpHandlerTest {
 		assertCreatedBodyPublisherIs(PUBLISHER_NO_BODY);
 		HttpResponseSpy<?> responseSpy = assertSendOnHttpClientReturnResponseSpy();
 
-		// responseSpy.MCR.assertReturn("body", 0, errorText);
 		InputStreamSpy inStreamSpy = (InputStreamSpy) responseSpy.MCR.getReturnValue("body", 0);
 		byte[] bytes = (byte[]) inStreamSpy.MCR.getReturnValue("readAllBytes", 0);
 		assertEquals(errorText.getBytes(), bytes);
 
-		// assertEquals(errorText, "NoAuth");
 		responseSpy.MCR.assertReturn("statusCode", 0, responseCode);
 		assertEquals(responseCode, 403);
 	}
 
+	private HttpResponseSpy<String> createSetAndReturnStringResponseSpyInHttpClientSpy() {
+		HttpResponseSpy<String> responseSpy = new HttpResponseSpy<>();
+		responseSpy.MRV.setDefaultReturnValuesSupplier("body", InputStreamSpy::new);
+		httpClientSpy.MRV.setDefaultReturnValuesSupplier("send", () -> responseSpy);
+		return responseSpy;
+	}
+
 	@Test
 	public void testSetRequestMethodAndGetResponseBinary() {
-		HttpResponseSpy<InputStream> inputStreamresponseSpy = new HttpResponseSpy<>();
-		inputStreamresponseSpy.MRV.setDefaultReturnValuesSupplier("body", InputStreamSpy::new);
-		httpClientSpy.MRV.setDefaultReturnValuesSupplier("send", () -> inputStreamresponseSpy);
-
 		httpHandler.setRequestMethod("GET");
 		InputStream responseBinary = httpHandler.getResponseBinary();
 
@@ -131,10 +121,6 @@ public class HttpHandlerTest {
 		RuntimeException sendException = new RuntimeException("someMessage");
 		httpClientSpy.MRV.setAlwaysThrowException("send", sendException);
 
-		HttpResponseSpy<InputStream> inputStreamresponseSpy = new HttpResponseSpy<>();
-		inputStreamresponseSpy.MRV.setDefaultReturnValuesSupplier("body", InputStreamSpy::new);
-		httpClientSpy.MRV.setDefaultReturnValuesSupplier("send", () -> inputStreamresponseSpy);
-
 		httpHandler.setRequestMethod("GET");
 		try {
 			InputStream responseBinary = httpHandler.getResponseBinary();
@@ -147,7 +133,7 @@ public class HttpHandlerTest {
 
 	@Test
 	public void testSetRequestMethodAndSetStreamOutput() {
-		String inputStreamString = "hejsan";
+		String inputStreamString = "some inputStream";
 		InputStream inputStream = new ByteArrayInputStream(inputStreamString.getBytes());
 
 		httpHandler.setRequestMethod("PUT");
@@ -167,7 +153,7 @@ public class HttpHandlerTest {
 		RuntimeException sendException = new RuntimeException("someMessage");
 		httpClientSpy.MRV.setAlwaysThrowException("send", sendException);
 
-		String inputStreamString = "hejsan";
+		String inputStreamString = "some inputStream";
 		InputStream inputStream = new ByteArrayInputStream(inputStreamString.getBytes());
 
 		httpHandler.setRequestMethod("PUT");
@@ -241,15 +227,26 @@ public class HttpHandlerTest {
 
 	@Test
 	public void testSetRequestMethodAndGetHeader() {
-		// httpHandler.setRequestMethod("GET");
-		//
-		// String responseText = httpHandler.getResponseText();
-		//
-		// assertRequestMethodHasBeenSetInBuilder("GET");
-		// assertCreatedBodyPublisherIs(PUBLISHER_NO_BODY);
-		// HttpResponseSpy<?> responseSpy = assertSendOnHttpClientReturnResponseSpy();
-		//
-		// responseSpy.MCR.assertReturn("body", 0, responseText);
+		HttpResponseSpy<InputStream> inputStreamresponseSpy = new HttpResponseSpy<>();
+		inputStreamresponseSpy.MRV.setDefaultReturnValuesSupplier("body", InputStreamSpy::new);
+		httpClientSpy.MRV.setDefaultReturnValuesSupplier("send", () -> inputStreamresponseSpy);
+		setUpResponseWithHeaderUsingNameAndValue(inputStreamresponseSpy, "someHeader",
+				"someHeaderValue");
+		httpHandler.setRequestMethod("GET");
+
+		httpHandler.getResponseCode();
+		String headerValue = httpHandler.getHeaderField("someHeader");
+		assertEquals(headerValue, headerValue);
+
+	}
+
+	private void setUpResponseWithHeaderUsingNameAndValue(
+			HttpResponseSpy<InputStream> inputStreamresponseSpy, String headerName,
+			String headerValue) {
+		Builder newBuilder = HttpRequest.newBuilder();
+		newBuilder.uri(URI.create(url.toString()));
+		HttpHeaders headers = newBuilder.header(headerName, headerValue).build().headers();
+		inputStreamresponseSpy.MRV.setDefaultReturnValuesSupplier("headers", () -> headers);
 	}
 
 	@Test
@@ -303,10 +300,6 @@ public class HttpHandlerTest {
 		HttpRequestSpy httpRequestSpy = (HttpRequestSpy) builder2Spy.MCR.getReturnValue("build", 0);
 		httpClientSpy.MCR.assertParameter("send", 0, "request", httpRequestSpy);
 
-		BodyHandler<?> bodyHandler = (BodyHandler<?>) httpClientSpy.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("send", 0,
-						"responseBodyHandler");
-
 		return (HttpResponseSpy<?>) httpClientSpy.MCR.getReturnValue("send", 0);
 	}
 
@@ -319,157 +312,4 @@ public class HttpHandlerTest {
 	private void assertRequestMethodHasBeenSetInBuilder(String requestMethod) {
 		builderSpy.MCR.assertParameter("method", 0, "method", requestMethod);
 	}
-
-	// @Test(expectedExceptions = RuntimeException.class)
-	// public void testSetWrongRequestMethod() {
-	// HttpURLConnectionSpy urlConnection = new HttpURLConnectionErrorSpy(url);
-	// HttpHandler httpHandler = HttpHandlerImp.usingURLConnection(urlConnection);
-	// httpHandler.setRequestMethod("NOT_A_REQUEST_METHOD");
-	// }
-
-	// @Test
-	// public void testGetResponseCode() {
-	// HttpURLConnectionSpy urlConnection = new HttpURLConnectionSpy(url);
-	// HttpHandler httpHandler = HttpHandlerImp.usingURLConnection(urlConnection);
-	//
-	// urlConnection.setResponseCode(200);
-	// assertEquals(httpHandler.getResponseCode(), 200);
-	// }
-
-	@Test
-	public void testGetBrokenResponseCode() {
-		HttpURLConnectionSpy urlConnection = new HttpURLConnectionErrorSpy(url);
-		HttpHandler httpHandler = HttpHandlerImp.usingURLConnection(urlConnection);
-		assertEquals(httpHandler.getResponseCode(), 500);
-	}
-
-	// @Test
-	// public void testGetResponseText() {
-	// HttpURLConnectionSpy urlConnection = new HttpURLConnectionSpy(url);
-	// HttpHandler httpHandler = HttpHandlerImp.usingURLConnection(urlConnection);
-	//
-	// urlConnection.setResponseText("some text åäö");
-	// assertEquals(httpHandler.getResponseText(), "some text åäö");
-	// }
-
-	@Test(expectedExceptions = RuntimeException.class)
-	public void testGetBrokenResponseText() {
-		HttpURLConnectionSpy urlConnection = new HttpURLConnectionErrorSpy(url);
-		HttpHandler httpHandler = HttpHandlerImp.usingURLConnection(urlConnection);
-
-		httpHandler.getResponseText();
-	}
-
-	// @Test
-	// public void testGetErrorText() {
-	// HttpURLConnectionSpy urlConnection = new HttpURLConnectionSpy(url);
-	// HttpHandler httpHandler = HttpHandlerImp.usingURLConnection(urlConnection);
-	//
-	// urlConnection.setErrorText("some text");
-	// assertEquals(httpHandler.getErrorText(), "some text");
-	// }
-
-	@Test(expectedExceptions = RuntimeException.class)
-	public void testGetErrorTextBroken() {
-		HttpURLConnectionSpy urlConnection = new HttpURLConnectionErrorSpy(url);
-		HttpHandler httpHandler = HttpHandlerImp.usingURLConnection(urlConnection);
-
-		assertEquals(httpHandler.getErrorText(), "some text");
-	}
-
-	// @Test
-	// public void testSetOutput() {
-	// HttpURLConnectionSpy urlConnection = new HttpURLConnectionSpy(url);
-	// HttpHandler httpHandler = HttpHandlerImp.usingURLConnection(urlConnection);
-	// String str = "some text åäö";
-	// httpHandler.setOutput(str);
-	// urlConnection.MCR.assertParameters("setDoOutput", 0, true);
-	// assertEquals(urlConnection.getOutputStreamAsString(), str);
-	// }
-
-	@Test(expectedExceptions = RuntimeException.class)
-	public void testSetOutputIOException() {
-		HttpURLConnectionSpy urlConnection = new HttpURLConnectionErrorSpy(url);
-		HttpHandler httpHandler = HttpHandlerImp.usingURLConnection(urlConnection);
-
-		httpHandler.setOutput("some text");
-	}
-
-	// @Test
-	// public void testSetRequestProperty() {
-	// HttpURLConnectionSpy urlConnection = new HttpURLConnectionSpy(url);
-	// HttpHandler httpHandler = HttpHandlerImp.usingURLConnection(urlConnection);
-	//
-	// httpHandler.setRequestProperty("someKey", "someValue");
-	// assertEquals(urlConnection.requestProperties.get("someKey"), "someValue");
-	// }
-
-	// @Test
-	// public void testSetStreamOutput() {
-	// HttpURLConnectionSpy urlConnection = new HttpURLConnectionSpy(url);
-	// InputStreamSpy stream = new InputStreamSpy();
-	// HttpHandler httpHandler = HttpHandlerImp.usingURLConnection(urlConnection);
-	//
-	// httpHandler.setStreamOutput(stream);
-	//
-	// urlConnection.MCR.assertParameters("setDoOutput", 0, true);
-	// urlConnection.MCR.assertParameters("setChunkedStreamingMode", 0, 8192);
-	// stream.MCR.assertParameter("transferTo", 0, "out",
-	// urlConnection.MCR.getReturnValue("getOutputStream", 0));
-	// }
-
-	@Test(expectedExceptions = RuntimeException.class)
-	public void testSetStreamOutputBroken_ClosesStream() {
-		HttpURLConnectionSpy urlConnection = new HttpURLConnectionSpy(url);
-		RuntimeException error = new RuntimeException("someError");
-		urlConnection.MRV.setAlwaysThrowException("getOutputStream", error);
-		InputStreamSpy stream = new InputStreamSpy();
-		HttpHandler httpHandler = HttpHandlerImp.usingURLConnection(urlConnection);
-
-		httpHandler.setStreamOutput(stream);
-	}
-
-	// @Test
-	// public void testGetHeaderField() {
-	// HttpURLConnectionSpy urlConnection = new HttpURLConnectionSpy(url);
-	// HttpHandler httpHandler = HttpHandlerImp.usingURLConnection(urlConnection);
-	//
-	// urlConnection.setHeaderField("someName", "someValue");
-	// assertEquals(httpHandler.getHeaderField("someName"), "someValue");
-	// }
-
-	// @Test
-	// public void testGetNotFoundHeaderField() {
-	// HttpURLConnectionSpy urlConnection = new HttpURLConnectionSpy(url);
-	// HttpHandler httpHandler = HttpHandlerImp.usingURLConnection(urlConnection);
-	//
-	// assertEquals(httpHandler.getHeaderField("someOtherName"), null);
-	// }
-
-	// @Test
-	// public void testSetBasicAuthorization() {
-	// HttpURLConnectionSpy urlConnection = new HttpURLConnectionSpy(url);
-	// HttpHandler httpHandler = HttpHandlerImp.usingURLConnection(urlConnection);
-	//
-	// String username = "someUserId";
-	// String password = "somePassword";
-	// httpHandler.setBasicAuthorization(username, password);
-	//
-	// String encoded = Base64.getEncoder()
-	// .encodeToString((username + ":" + password).getBytes(StandardCharsets.UTF_8));
-	// assertEquals(urlConnection.requestProperties.get("Authorization"), "Basic " + encoded);
-	//
-	// }
-
-	// @Test
-	// public void testGetResponseBinary() {
-	// HttpURLConnectionSpy urlConnection = new HttpURLConnectionSpy(url);
-	// HttpHandler httpHandler = HttpHandlerImp.usingURLConnection(urlConnection);
-	//
-	// urlConnection.setResponseText("some text åäö");
-	// InputStream responseBinary = httpHandler.getResponseBinary();
-	// assertNotNull(responseBinary);
-	// assertSame(responseBinary, urlConnection.returnedInputStream);
-	// }
-
 }

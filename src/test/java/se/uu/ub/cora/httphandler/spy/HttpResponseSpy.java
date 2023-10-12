@@ -18,7 +18,7 @@ public class HttpResponseSpy<T> implements HttpResponse<T> {
 
 	public HttpResponseSpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("body", String::new);
+		MRV.setDefaultReturnValuesSupplier("body", () -> "a stream".getBytes());
 		MRV.setDefaultReturnValuesSupplier("statusCode", () -> 200);
 	}
 

@@ -19,6 +19,7 @@
 package se.uu.ub.cora.httphandler.spy;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.Authenticator;
 import java.net.CookieHandler;
 import java.net.ProxySelector;
@@ -44,7 +45,9 @@ public class HttpClientSpy extends HttpClient {
 
 	public HttpClientSpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("send", HttpResponseSpy<String>::new);
+		HttpResponseSpy<InputStream> inputStreamresponseSpy = new HttpResponseSpy<>();
+		inputStreamresponseSpy.MRV.setDefaultReturnValuesSupplier("body", InputStreamSpy::new);
+		MRV.setDefaultReturnValuesSupplier("send", () -> inputStreamresponseSpy);
 	}
 
 	@Override

@@ -21,7 +21,6 @@ package se.uu.ub.cora.httphandler.internal;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublisher;
@@ -34,13 +33,9 @@ import java.util.Base64;
 import java.util.List;
 
 import se.uu.ub.cora.httphandler.HttpHandler;
-import se.uu.ub.cora.httphandler.urlconnection.HttpURLConnectionHandler;
 
 public final class HttpHandlerImp implements HttpHandler {
 
-	private static final int INITIAL_BUFFER_SIZE = 8192;
-	private HttpURLConnection urlConnection;
-	private HttpURLConnectionHandler httpURLConnectionHandler;
 	private Builder builder;
 	private HttpClient httpClient;
 	private String requestMetod;
@@ -49,11 +44,6 @@ public final class HttpHandlerImp implements HttpHandler {
 	private static final List<String> REQUEST_METHODS = List.of("GET", "HEAD", "POST", "PUT",
 			"DELETE", "PATCH");
 
-	private HttpHandlerImp(HttpURLConnection httpUrlConnection) {
-		this.urlConnection = httpUrlConnection;
-		httpURLConnectionHandler = new HttpURLConnectionHandler(urlConnection);
-	}
-
 	private HttpHandlerImp(Builder builder, HttpClient newHttpClient) {
 		this.builder = builder;
 		this.httpClient = newHttpClient;
@@ -61,10 +51,6 @@ public final class HttpHandlerImp implements HttpHandler {
 
 	public static HttpHandler usingBuilderAndHttpClient(Builder builder, HttpClient newHttpClient) {
 		return new HttpHandlerImp(builder, newHttpClient);
-	}
-
-	public static HttpHandlerImp usingURLConnection(HttpURLConnection httpUrlConnection) {
-		return new HttpHandlerImp(httpUrlConnection);
 	}
 
 	@Override
@@ -78,7 +64,6 @@ public final class HttpHandlerImp implements HttpHandler {
 	@Override
 	public void setRequestProperty(String key, String value) {
 		builder.setHeader(key, value);
-		// urlConnection.setRequestProperty(key, value);
 	}
 
 	@Override
@@ -93,6 +78,10 @@ public final class HttpHandlerImp implements HttpHandler {
 	private String tryToGetResponseText() throws IOException, InterruptedException {
 		BodyHandler<InputStream> bodyHandler = HttpResponse.BodyHandlers.ofInputStream();
 		possiblyBuildRequestAndSend(bodyHandler);
+		return inputStreamToString();
+	}
+
+	private String inputStreamToString() throws IOException {
 		return new String(((InputStream) response.body()).readAllBytes(), StandardCharsets.UTF_8);
 	}
 
@@ -154,7 +143,11 @@ public final class HttpHandlerImp implements HttpHandler {
 
 	@Override
 	public String getErrorText() {
-		return getResponseText();
+		try {
+			return tryToGetResponseText();
+		} catch (Exception e) {
+			throw new RuntimeException("Error getting error text: ", e);
+		}
 	}
 
 	@Override
@@ -177,9 +170,8 @@ public final class HttpHandlerImp implements HttpHandler {
 		try {
 			return response.headers().firstValue(name).orElse(null);
 		} catch (Exception e) {
-			throw new RuntimeException("No response to get header from: ", e);
+			return null;
 		}
-		// return urlConnection.getHeaderField(name);
 	}
 
 	@Override
