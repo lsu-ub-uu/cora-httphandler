@@ -39,7 +39,7 @@ public final class HttpHandlerImp implements HttpHandler {
 	private Builder builder;
 	private HttpClient httpClient;
 	private String requestMetod;
-	private HttpResponse<?> response;
+	private HttpResponse<InputStream> response;
 	private BodyPublisher bodyPublisher = HttpRequest.BodyPublishers.noBody();
 	private static final List<String> REQUEST_METHODS = List.of("GET", "HEAD", "POST", "PUT",
 			"DELETE", "PATCH");
@@ -76,23 +76,22 @@ public final class HttpHandlerImp implements HttpHandler {
 	}
 
 	private String tryToGetResponseText() throws IOException, InterruptedException {
-		BodyHandler<InputStream> bodyHandler = HttpResponse.BodyHandlers.ofInputStream();
-		possiblyBuildRequestAndSend(bodyHandler);
+		possiblyBuildRequestAndSend();
 		return inputStreamToString();
 	}
 
 	private String inputStreamToString() throws IOException {
-		return new String(((InputStream) response.body()).readAllBytes(), StandardCharsets.UTF_8);
+		return new String(response.body().readAllBytes(), StandardCharsets.UTF_8);
 	}
 
-	private void possiblyBuildRequestAndSend(BodyHandler<?> bodyHandler)
-			throws IOException, InterruptedException {
+	private void possiblyBuildRequestAndSend() throws IOException, InterruptedException {
 		if (response != null) {
 			return;
 		}
 
 		Builder methodBuilder = builder.method(requestMetod, bodyPublisher);
 		HttpRequest httpRequest = methodBuilder.build();
+		BodyHandler<InputStream> bodyHandler = HttpResponse.BodyHandlers.ofInputStream();
 		response = httpClient.send(httpRequest, bodyHandler);
 	}
 
@@ -106,8 +105,7 @@ public final class HttpHandlerImp implements HttpHandler {
 	}
 
 	private int tryToGetResponseCode() throws IOException, InterruptedException {
-		BodyHandler<InputStream> bodyHandler = HttpResponse.BodyHandlers.ofInputStream();
-		possiblyBuildRequestAndSend(bodyHandler);
+		possiblyBuildRequestAndSend();
 		return response.statusCode();
 	}
 
@@ -121,9 +119,8 @@ public final class HttpHandlerImp implements HttpHandler {
 	}
 
 	private InputStream tryToGetBinary() throws IOException, InterruptedException {
-		BodyHandler<InputStream> bodyHandler = HttpResponse.BodyHandlers.ofInputStream();
-		possiblyBuildRequestAndSend(bodyHandler);
-		return (InputStream) response.body();
+		possiblyBuildRequestAndSend();
+		return response.body();
 	}
 
 	@Override
@@ -137,8 +134,7 @@ public final class HttpHandlerImp implements HttpHandler {
 
 	private void tryToSetOutput(String outputString) throws IOException, InterruptedException {
 		bodyPublisher = BodyPublishers.ofString(outputString);
-		BodyHandler<String> bodyHandler = HttpResponse.BodyHandlers.ofString();
-		possiblyBuildRequestAndSend(bodyHandler);
+		possiblyBuildRequestAndSend();
 	}
 
 	@Override
@@ -161,8 +157,7 @@ public final class HttpHandlerImp implements HttpHandler {
 
 	private void tryToSetStreamOutput(InputStream stream) throws IOException, InterruptedException {
 		bodyPublisher = BodyPublishers.ofInputStream(() -> stream);
-		BodyHandler<InputStream> bodyHandler = HttpResponse.BodyHandlers.ofInputStream();
-		possiblyBuildRequestAndSend(bodyHandler);
+		possiblyBuildRequestAndSend();
 	}
 
 	@Override
@@ -188,5 +183,4 @@ public final class HttpHandlerImp implements HttpHandler {
 	public HttpClient onlyForTestGetHttpClient() {
 		return httpClient;
 	}
-
 }
