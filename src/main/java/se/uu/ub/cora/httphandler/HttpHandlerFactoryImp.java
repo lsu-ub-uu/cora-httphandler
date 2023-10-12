@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2018 Uppsala University Library
+ * Copyright 2016, 2018, 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -21,7 +21,14 @@ package se.uu.ub.cora.httphandler;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.Builder;
+
+import se.uu.ub.cora.httphandler.internal.HttpHandlerImp;
+import se.uu.ub.cora.httphandler.internal.HttpMultiPartUploaderImp;
 
 public class HttpHandlerFactoryImp implements HttpHandlerFactory {
 
@@ -35,9 +42,9 @@ public class HttpHandlerFactoryImp implements HttpHandlerFactory {
 	}
 
 	private HttpHandler tryToFactor(String urlString) throws IOException {
-		URL url = new URL(urlString);
-		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-		return HttpHandlerImp.usingURLConnection(urlConnection);
+		Builder builder = HttpRequest.newBuilder().uri(URI.create(urlString));
+		HttpClient httpClient = HttpClient.newHttpClient();
+		return HttpHandlerImp.usingBuilderAndHttpClient(builder, httpClient);
 	}
 
 	@Override

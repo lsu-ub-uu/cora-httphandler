@@ -34,6 +34,7 @@ public class InputStreamSpy extends InputStream {
 		MCR.useMRV(MRV);
 		MRV.setDefaultReturnValuesSupplier("read", (Supplier<Integer>) () -> 0);
 		MRV.setDefaultReturnValuesSupplier("transferTo", () -> Long.valueOf(0));
+		MRV.setDefaultReturnValuesSupplier("readAllBytes", () -> "a stream".getBytes());
 	}
 
 	@Override
@@ -44,6 +45,11 @@ public class InputStreamSpy extends InputStream {
 	@Override
 	public long transferTo(OutputStream out) throws IOException {
 		return (long) MCR.addCallAndReturnFromMRV("out", out);
+	}
+
+	@Override
+	public byte[] readAllBytes() throws IOException {
+		return (byte[]) MCR.addCallAndReturnFromMRV();
 	}
 
 }

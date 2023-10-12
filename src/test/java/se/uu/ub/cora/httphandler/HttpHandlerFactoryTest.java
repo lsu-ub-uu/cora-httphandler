@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2018 Uppsala University Library
+ * Copyright 2016, 2018, 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,24 +19,46 @@
 
 package se.uu.ub.cora.httphandler;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
+
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.Builder;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.httphandler.internal.HttpHandlerImp;
+import se.uu.ub.cora.httphandler.internal.HttpMultiPartUploaderImp;
+
 public class HttpHandlerFactoryTest {
 	private HttpHandlerFactory factory;
+	private String url;
 
 	@BeforeMethod
 	public void setUp() {
+		url = "http://google.se";
 		factory = new HttpHandlerFactoryImp();
 	}
 
 	@Test
 	public void testFactor() {
-		String url = "http://google.se";
 		HttpHandler httpHandler = factory.factor(url);
 		assertTrue(httpHandler instanceof HttpHandlerImp);
+	}
+
+	@Test
+	public void testFactorHttpHandler() throws Exception {
+		HttpHandlerImp httpHandler = (HttpHandlerImp) factory.factor(url);
+
+		Builder httpRequestBuilder = httpHandler.onlyForTestGetBuilder();
+		HttpRequest httpRequest = httpRequestBuilder.build();
+		assertEquals(httpRequest.uri().toString(), url);
+
+		HttpClient httpClient = httpHandler.onlyForTestGetHttpClient();
+		assertNotNull(httpClient);
 	}
 
 	@Test(expectedExceptions = RuntimeException.class)

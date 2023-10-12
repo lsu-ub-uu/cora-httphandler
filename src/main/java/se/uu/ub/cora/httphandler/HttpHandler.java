@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2019 Uppsala University Library
+ * Copyright 2016, 2019, 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -21,40 +21,115 @@ package se.uu.ub.cora.httphandler;
 
 import java.io.InputStream;
 
+/**
+ * HttpHandler is an interface to do a single http request to a specified url. HttpHandlers should
+ * be factored by using a {@link HttpHandlerFactory} usually {@link HttpHandlerFactoryImp}.
+ * A HttpHandler cannot be re-used and needs to be factored for every call due to current
+ * implementation that is based on an earlier use of HttpUrlConnection.
+ * 
+ */
 public interface HttpHandler {
-
+	
+	/**
+	 * setRequestMethod set the request method to use in the http request.
+	 * 
+	 * @param requestMethod
+	 *            A String with the requestMethod to use.
+	 */
 	void setRequestMethod(String requestMethod);
 
+	/**
+	 * getResponseCode returns the response code for the request, or 500 if there is a problem with
+	 * the request.
+	 * <p>
+	 * getResponseCode triggers the request to be sent, if it has not been sent since before.
+	 * 
+	 * @return An int with the response code from the request or 500 if something has gone wrong.
+	 */
 	int getResponseCode();
 
 	/**
 	 * Reads a String from the Response from a call to a Http service
+	 * <p>
+	 * getResponseText triggers the request to be sent, if it has not been sent since before.
 	 * 
 	 * Can throw a {@link RuntimeException} if any problem occurs while reading the String
 	 * 
-	 * @return
+	 * @return A String with the response text from the request
 	 */
 	String getResponseText();
 
 	/**
 	 * Reads a binary from the Response from a call to a Http service
 	 * 
+	 * getResponseBinary triggers the request to be sent, if it has not been sent since before.
+	 * 
 	 * Can throw a {@link RuntimeException} if any problem occurs while reading the binary
 	 * 
-	 * @return
+	 * @return The incoming inputStream from the
 	 */
 	InputStream getResponseBinary();
 
-	void setOutput(String outputString);
-
+	/**
+	 * Set a header for the request call.
+	 * 
+	 * @param key
+	 *            The header key
+	 * @param value
+	 *            The header value
+	 */
 	void setRequestProperty(String key, String value);
 
-	String getErrorText();
-
-	void setStreamOutput(InputStream stream);
-
+	/**
+	 * Get value of specific header field This does not trigger a request to be sent and must
+	 * therefore be used after an actual request have been made using triggering methods.
+	 * 
+	 * @param name
+	 *            The name of the header field
+	 * @return The value of the header field
+	 */
 	String getHeaderField(String name);
 
+	/**
+	 * Read the body of the request
+	 * 
+	 * getErrorText triggers the request to be sent, if it has not been sent since before.
+	 * Can throw a {@link RuntimeException} if any problem occurs while reading the String
+	 * 
+	 * @return A String with the reponse text from the request
+	 */
+	String getErrorText();
+
+	/**
+	 * Set outgoing body from a String.
+	 * 
+	 * setOutput triggers the request to be sent, if it has not been sent since before.
+	 * Can throw a {@link RuntimeException} if any problem occurs while sending the body
+	 * 
+	 * @param outputString
+	 *            The String to set as output
+	 */
+	void setOutput(String outputString);
+
+	/**
+	 * Set outgoing body as an InputStream.
+	 * 
+	 * setStreamOutput triggers the request to be sent, if it has not been sent since before.
+	 * Can throw a {@link RuntimeException} if any problem occurs while sending the body
+	 * 
+	 * @param stream
+	 *            The stream to use as output
+	 */
+	void setStreamOutput(InputStream stream);
+
+	/**
+	 * Set the basic authorization as a header for the request call
+	 * 
+	 * @param username
+	 *            The username to use
+	 * @param password
+	 *            The password to use
+	 */
 	void setBasicAuthorization(String username, String password);
 
 }
