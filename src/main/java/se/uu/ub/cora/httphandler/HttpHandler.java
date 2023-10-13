@@ -23,15 +23,30 @@ import java.io.InputStream;
 
 /**
  * HttpHandler is an interface to do a single http request to a specified url. HttpHandlers should
- * be factored by using a {@link HttpHandlerFactory} usually {@link HttpHandlerFactoryImp}.
- * A HttpHandler cannot be re-used and needs to be factored for every call due to current
- * implementation that is based on an earlier use of HttpUrlConnection.
+ * be factored by using a {@link HttpHandlerFactory} usually {@link HttpHandlerFactoryImp}. A
+ * HttpHandler cannot be re-used and needs to be factored for every call.
+ * <p>
+ * The request method SHOULD by default be set to GET by implementing classes, so that a call to the
+ * {@link #setRequestMethod(String)} only is necessary if a diffrent request method is to be used.
  * 
  */
 public interface HttpHandler {
-	
+
 	/**
 	 * setRequestMethod set the request method to use in the http request.
+	 * <p>
+	 * Currently supported request methods are:
+	 * <ul>
+	 * <li>GET</li>
+	 * <li>HEAD</li>
+	 * <li>POST</li>
+	 * <li>PUT</li>
+	 * <li>DELETE</li>
+	 * <li>PATCH</li>
+	 * </ul>
+	 * <p>
+	 * By default should GET be set by implementing classes, so a call to this method is only
+	 * necessary if a diffrent request method is to be used.
 	 * 
 	 * @param requestMethod
 	 *            A String with the requestMethod to use.
@@ -93,8 +108,8 @@ public interface HttpHandler {
 	/**
 	 * Read the body of the request
 	 * 
-	 * getErrorText triggers the request to be sent, if it has not been sent since before.
-	 * Can throw a {@link RuntimeException} if any problem occurs while reading the String
+	 * getErrorText triggers the request to be sent, if it has not been sent since before. Can throw
+	 * a {@link RuntimeException} if any problem occurs while reading the String
 	 * 
 	 * @return A String with the reponse text from the request
 	 */
@@ -103,8 +118,8 @@ public interface HttpHandler {
 	/**
 	 * Set outgoing body from a String.
 	 * 
-	 * setOutput triggers the request to be sent, if it has not been sent since before.
-	 * Can throw a {@link RuntimeException} if any problem occurs while sending the body
+	 * setOutput triggers the request to be sent, if it has not been sent since before. Can throw a
+	 * {@link RuntimeException} if any problem occurs while sending the body
 	 * 
 	 * @param outputString
 	 *            The String to set as output
@@ -114,8 +129,8 @@ public interface HttpHandler {
 	/**
 	 * Set outgoing body as an InputStream.
 	 * 
-	 * setStreamOutput triggers the request to be sent, if it has not been sent since before.
-	 * Can throw a {@link RuntimeException} if any problem occurs while sending the body
+	 * setStreamOutput triggers the request to be sent, if it has not been sent since before. Can
+	 * throw a {@link RuntimeException} if any problem occurs while sending the body
 	 * 
 	 * @param stream
 	 *            The stream to use as output

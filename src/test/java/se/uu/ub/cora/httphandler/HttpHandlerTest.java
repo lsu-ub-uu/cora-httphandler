@@ -63,6 +63,19 @@ public class HttpHandlerTest {
 	}
 
 	@Test
+	public void testDefaultMethodIsGET() {
+		String responseText = httpHandler.getResponseText();
+
+		assertRequestMethodHasBeenSetInBuilder("GET");
+		assertCreatedBodyPublisherIs(PUBLISHER_NO_BODY);
+		HttpResponseSpy<?> responseSpy = assertSendOnHttpClientReturnResponseSpy();
+
+		InputStreamSpy inStreamSpy = (InputStreamSpy) responseSpy.MCR.getReturnValue("body", 0);
+		byte[] bytes = (byte[]) inStreamSpy.MCR.getReturnValue("readAllBytes", 0);
+		assertEquals(responseText.getBytes(), bytes);
+	}
+
+	@Test
 	public void testSetRequestMethodAndGetResponseText() {
 		httpHandler.setRequestMethod("GET");
 		String responseText = httpHandler.getResponseText();
@@ -123,7 +136,7 @@ public class HttpHandlerTest {
 
 		httpHandler.setRequestMethod("GET");
 		try {
-			InputStream responseBinary = httpHandler.getResponseBinary();
+			httpHandler.getResponseBinary();
 			fail("Exception should have been thrown");
 		} catch (Exception e) {
 			assertTrue(e instanceof RuntimeException);

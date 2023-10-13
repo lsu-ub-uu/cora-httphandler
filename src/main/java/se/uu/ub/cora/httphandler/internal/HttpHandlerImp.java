@@ -38,7 +38,7 @@ public final class HttpHandlerImp implements HttpHandler {
 
 	private Builder builder;
 	private HttpClient httpClient;
-	private String requestMetod;
+	private String requestMetod = "GET";
 	private HttpResponse<InputStream> response;
 	private BodyPublisher bodyPublisher = HttpRequest.BodyPublishers.noBody();
 	private static final List<String> REQUEST_METHODS = List.of("GET", "HEAD", "POST", "PUT",
