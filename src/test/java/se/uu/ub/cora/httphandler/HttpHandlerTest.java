@@ -1,5 +1,6 @@
 /*
  * Copyright 2016, 2019, 2023 Uppsala University Library
+ * Copyright 2023 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -284,6 +285,18 @@ public class HttpHandlerTest {
 
 	private void assertPropertyIsSet(String key, String value) {
 		builderSpy.MCR.assertParameters("setHeader", 0, key, value);
+	}
+
+	@Test
+	public void testSetRequestPropertyWithNullValuesShouldNotBeSet() {
+		httpHandler.setRequestProperty("someKey", null);
+		assertNoPropertyIsSet();
+		httpHandler.setRequestProperty(null, "someValue");
+		assertNoPropertyIsSet();
+	}
+
+	private void assertNoPropertyIsSet() {
+		builderSpy.MCR.assertMethodNotCalled("setHeader");
 	}
 
 	@Test

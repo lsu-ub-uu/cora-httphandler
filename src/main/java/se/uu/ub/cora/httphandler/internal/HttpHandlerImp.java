@@ -1,5 +1,6 @@
 /*
  * Copyright 2016, 2018, 2019, 2023 Uppsala University Library
+ * Copyright 2023 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -63,7 +64,13 @@ public final class HttpHandlerImp implements HttpHandler {
 
 	@Override
 	public void setRequestProperty(String key, String value) {
-		builder.setHeader(key, value);
+		if (bothKeyAndValueExist(key, value)) {
+			builder.setHeader(key, value);
+		}
+	}
+
+	private boolean bothKeyAndValueExist(String key, String value) {
+		return null != key && null != value;
 	}
 
 	@Override

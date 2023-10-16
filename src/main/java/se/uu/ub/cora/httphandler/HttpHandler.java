@@ -1,5 +1,6 @@
 /*
  * Copyright 2016, 2019, 2023 Uppsala University Library
+ * Copyright 2023 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -87,6 +88,8 @@ public interface HttpHandler {
 
 	/**
 	 * Set a header for the request call.
+	 * <p>
+	 * Call with null values will not be set.
 	 * 
 	 * @param key
 	 *            The header key
