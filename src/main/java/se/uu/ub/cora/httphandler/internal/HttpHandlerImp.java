@@ -135,7 +135,7 @@ public final class HttpHandlerImp implements HttpHandler {
 		try {
 			tryToSetOutput(outputString);
 		} catch (Exception e) {
-			throw new RuntimeException("Error setting output: ", e);
+			throw new RuntimeException("Error setting output: " + e.getMessage(), e);
 		}
 	}
 

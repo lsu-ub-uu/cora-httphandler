@@ -205,7 +205,7 @@ public class HttpHandlerTest {
 
 		} catch (Exception e) {
 			assertTrue(e instanceof RuntimeException);
-			assertEquals(e.getMessage(), "Error setting output: ");
+			assertEquals(e.getMessage(), "Error setting output: someMessage");
 		}
 	}
 
