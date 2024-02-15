@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2019, 2023 Uppsala University Library
+ * Copyright 2016, 2019, 2023, 2024 Uppsala University Library
  * Copyright 2023 Olov McKie
  *
  * This file is part of Cora.
@@ -34,6 +34,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.Builder;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.List;
+import java.util.Map;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -251,6 +253,24 @@ public class HttpHandlerTest {
 		httpHandler.getResponseCode();
 		String headerValue = httpHandler.getHeaderField("someHeader");
 		assertEquals(headerValue, headerValue);
+
+	}
+
+	@Test
+	public void testSetRequestMethodAndGetHeaders() {
+		HttpResponseSpy<InputStream> inputStreamresponseSpy = new HttpResponseSpy<>();
+		inputStreamresponseSpy.MRV.setDefaultReturnValuesSupplier("body", InputStreamSpy::new);
+		httpClientSpy.MRV.setDefaultReturnValuesSupplier("send", () -> inputStreamresponseSpy);
+		setUpResponseWithHeaderUsingNameAndValue(inputStreamresponseSpy, "someHeader",
+				"someHeaderValue");
+
+		httpHandler.setRequestMethod("GET");
+		httpHandler.getResponseCode();
+
+		Map<String, Object> headers = httpHandler.getResponseHeaders();
+		assertEquals(headers.size(), 1);
+		List<String> listOfHeaderValues = (List<String>) headers.get("someHeader");
+		assertEquals(listOfHeaderValues.get(0), "someHeaderValue");
 
 	}
 

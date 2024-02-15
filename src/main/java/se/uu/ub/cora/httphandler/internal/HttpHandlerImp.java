@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2018, 2019, 2023 Uppsala University Library
+ * Copyright 2016, 2018, 2019, 2023, 2024 Uppsala University Library
  * Copyright 2023 Olov McKie
  *
  * This file is part of Cora.
@@ -23,6 +23,7 @@ package se.uu.ub.cora.httphandler.internal;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.http.HttpClient;
+import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpRequest.BodyPublishers;
@@ -32,6 +33,10 @@ import java.net.http.HttpResponse.BodyHandler;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import se.uu.ub.cora.httphandler.HttpHandler;
 
@@ -165,6 +170,17 @@ public final class HttpHandlerImp implements HttpHandler {
 	private void tryToSetStreamOutput(InputStream stream) throws IOException, InterruptedException {
 		bodyPublisher = BodyPublishers.ofInputStream(() -> stream);
 		possiblyBuildRequestAndSend();
+	}
+
+	@Override
+	public Map<String, Object> getResponseHeaders() {
+		HttpHeaders responseHeaders = response.headers();
+
+		return responseHeaders.map().entrySet().stream().collect(putHeaderToMap());
+	}
+
+	private Collector<Entry<String, List<String>>, ?, Map<String, Object>> putHeaderToMap() {
+		return Collectors.toMap(Entry::getKey, Entry::getValue);
 	}
 
 	@Override
