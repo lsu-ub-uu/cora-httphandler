@@ -271,7 +271,6 @@ public class HttpHandlerTest {
 		assertEquals(headers.size(), 1);
 		List<String> listOfHeaderValues = (List<String>) headers.get("someHeader");
 		assertEquals(listOfHeaderValues.get(0), "someHeaderValue");
-
 	}
 
 	private void setUpResponseWithHeaderUsingNameAndValue(
@@ -281,6 +280,21 @@ public class HttpHandlerTest {
 		newBuilder.uri(URI.create(url.toString()));
 		HttpHeaders headers = newBuilder.header(headerName, headerValue).build().headers();
 		inputStreamresponseSpy.MRV.setDefaultReturnValuesSupplier("headers", () -> headers);
+	}
+
+	@Test
+	public void testSetRequestMethodAndGetHeadersThrowsException() {
+		RuntimeException sendException = new RuntimeException("someMessage");
+		httpClientSpy.MRV.setAlwaysThrowException("send", sendException);
+
+		httpHandler.setRequestMethod("GET");
+		try {
+			httpHandler.getResponseHeaders();
+			fail("Exception should have been thrown");
+		} catch (Exception e) {
+			assertTrue(e instanceof RuntimeException);
+			assertEquals(e.getMessage(), "Error getting response headers: ");
+		}
 	}
 
 	@Test

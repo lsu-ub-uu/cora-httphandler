@@ -102,6 +102,8 @@ public interface HttpHandler {
 	/**
 	 * getResponseHeaders return all the headers from the response.
 	 * 
+	 * * Can throw a {@link RuntimeException} if any problem occurs while returning the headers
+	 * 
 	 * @return A map
 	 */
 	Map<String, Object> getResponseHeaders();

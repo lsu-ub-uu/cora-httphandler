@@ -174,8 +174,15 @@ public final class HttpHandlerImp implements HttpHandler {
 
 	@Override
 	public Map<String, Object> getResponseHeaders() {
-		HttpHeaders responseHeaders = response.headers();
+		try {
+			return tryToGetResponseHeaders();
+		} catch (Exception e) {
+			throw new RuntimeException("Error getting response headers: ", e);
+		}
+	}
 
+	private Map<String, Object> tryToGetResponseHeaders() {
+		HttpHeaders responseHeaders = response.headers();
 		return responseHeaders.map().entrySet().stream().collect(putHeaderToMap());
 	}
 
