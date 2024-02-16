@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, 2019, 2023 Uppsala University Library
+ * Copyright 2016, 2019, 2023, 2024 Uppsala University Library
  * Copyright 2023 Olov McKie
  *
  * This file is part of Cora.
@@ -21,6 +21,7 @@
 package se.uu.ub.cora.httphandler;
 
 import java.io.InputStream;
+import java.util.Map;
 
 /**
  * HttpHandler is an interface to do a single http request to a specified url. HttpHandlers should
@@ -97,6 +98,13 @@ public interface HttpHandler {
 	 *            The header value
 	 */
 	void setRequestProperty(String key, String value);
+
+	/**
+	 * getResponseHeaders return all the headers from the response.
+	 * 
+	 * @return A map
+	 */
+	Map<String, Object> getResponseHeaders();
 
 	/**
 	 * Get value of specific header field This does not trigger a request to be sent and must
