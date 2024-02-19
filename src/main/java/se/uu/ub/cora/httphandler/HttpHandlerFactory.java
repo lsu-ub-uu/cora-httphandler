@@ -42,4 +42,13 @@ public interface HttpHandlerFactory {
 	 * @return A HttpMultiPartUploader
 	 */
 	HttpMultiPartUploader factorHttpMultiPartUploader(String url);
+
+	/**
+	 * factorUsingHttpVersion_1_1 factors a {@link HttpHandler} using only http version 1.1.
+	 * 
+	 * @param url
+	 *            A String with the URL to do a request to
+	 * @return A HttpHandler that only work with http version 1.1
+	 */
+	HttpHandler factorUsingHttpVersion_1_1(String url);
 }

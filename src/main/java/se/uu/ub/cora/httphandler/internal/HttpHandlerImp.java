@@ -112,6 +112,7 @@ public final class HttpHandlerImp implements HttpHandler {
 		try {
 			return tryToGetResponseCode();
 		} catch (Exception e) {
+			System.out.println("Error Message: " + e.getMessage());
 			return 500;
 		}
 	}

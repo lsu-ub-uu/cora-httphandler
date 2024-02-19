@@ -41,10 +41,21 @@ public class HttpHandlerFactoryImp implements HttpHandlerFactory {
 		}
 	}
 
-	private HttpHandler tryToFactor(String urlString) throws IOException {
-		Builder builder = HttpRequest.newBuilder().uri(URI.create(urlString));
+	private HttpHandler tryToFactor(String urlString) {
+		Builder builder = createHttpBuilder(urlString);
+
+		return createHttpHandler(builder);
+	}
+
+	private HttpHandler createHttpHandler(Builder builder) {
 		HttpClient httpClient = HttpClient.newHttpClient();
 		return HttpHandlerImp.usingBuilderAndHttpClient(builder, httpClient);
+	}
+
+	private Builder createHttpBuilder(String urlString) {
+		Builder builder = HttpRequest.newBuilder();
+		builder.uri(URI.create(urlString));
+		return builder;
 	}
 
 	@Override
@@ -61,5 +72,18 @@ public class HttpHandlerFactoryImp implements HttpHandlerFactory {
 		URL url = new URL(urlString);
 		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
 		return HttpMultiPartUploaderImp.usingURLConnection(urlConnection);
+	}
+
+	@Override
+	public HttpHandler factorUsingHttpVersion_1_1(String url) {
+		Builder builder = createHttpBuilderUsingHttp11(url);
+		return createHttpHandler(builder);
+	}
+
+	private Builder createHttpBuilderUsingHttp11(String urlString) {
+		Builder builder = HttpRequest.newBuilder();
+		builder.uri(URI.create(urlString));
+		builder.version(HttpClient.Version.HTTP_1_1);
+		return builder;
 	}
 }

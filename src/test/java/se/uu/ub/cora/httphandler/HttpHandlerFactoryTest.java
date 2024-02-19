@@ -53,6 +53,10 @@ public class HttpHandlerFactoryTest {
 	public void testFactorHttpHandler() throws Exception {
 		HttpHandlerImp httpHandler = (HttpHandlerImp) factory.factor(url);
 
+		assertHttpFactoring(httpHandler);
+	}
+
+	private void assertHttpFactoring(HttpHandlerImp httpHandler) {
 		Builder httpRequestBuilder = httpHandler.onlyForTestGetBuilder();
 		HttpRequest httpRequest = httpRequestBuilder.build();
 		assertEquals(httpRequest.uri().toString(), url);
@@ -76,5 +80,19 @@ public class HttpHandlerFactoryTest {
 	@Test(expectedExceptions = RuntimeException.class)
 	public void testFactorHttpMultiPartUploaderNonExistingClassName() {
 		factory.factorHttpMultiPartUploader("/()&/()%&");
+	}
+
+	@Test
+	public void testFactorUsingHttpVersion_1_1() throws Exception {
+		HttpHandlerImp httpHandler = (HttpHandlerImp) factory.factorUsingHttpVersion_1_1(url);
+		assertTrue(httpHandler instanceof HttpHandlerImp);
+
+		Builder httpRequestBuilder = httpHandler.onlyForTestGetBuilder();
+		HttpRequest httpRequest = httpRequestBuilder.build();
+		assertEquals(httpRequest.uri().toString(), url);
+		assertEquals(httpRequest.version().get().toString(), "HTTP_1_1");
+
+		HttpClient httpClient = httpHandler.onlyForTestGetHttpClient();
+		assertNotNull(httpClient);
 	}
 }
