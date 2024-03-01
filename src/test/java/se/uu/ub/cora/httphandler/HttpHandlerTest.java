@@ -34,7 +34,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.Builder;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.List;
 import java.util.Map;
 
 import org.testng.annotations.BeforeMethod;
@@ -243,43 +242,54 @@ public class HttpHandlerTest {
 
 	@Test
 	public void testSetRequestMethodAndGetHeader() {
-		HttpResponseSpy<InputStream> inputStreamresponseSpy = new HttpResponseSpy<>();
-		inputStreamresponseSpy.MRV.setDefaultReturnValuesSupplier("body", InputStreamSpy::new);
-		httpClientSpy.MRV.setDefaultReturnValuesSupplier("send", () -> inputStreamresponseSpy);
-		setUpResponseWithHeaderUsingNameAndValue(inputStreamresponseSpy, "someHeader",
+		HttpResponseSpy<InputStream> inputStreamResponse = new HttpResponseSpy<>();
+		httpClientSpy.MRV.setDefaultReturnValuesSupplier("send", () -> inputStreamResponse);
+		createHttpResponseUsingBodyAndHeaders(inputStreamResponse, "someHeader",
 				"someHeaderValue");
-		httpHandler.setRequestMethod("GET");
 
+		httpHandler.setRequestMethod("GET");
 		httpHandler.getResponseCode();
+
 		String headerValue = httpHandler.getHeaderField("someHeader");
 		assertEquals(headerValue, headerValue);
-
 	}
 
 	@Test
 	public void testSetRequestMethodAndGetHeaders() {
-		HttpResponseSpy<InputStream> inputStreamresponseSpy = new HttpResponseSpy<>();
-		inputStreamresponseSpy.MRV.setDefaultReturnValuesSupplier("body", InputStreamSpy::new);
-		httpClientSpy.MRV.setDefaultReturnValuesSupplier("send", () -> inputStreamresponseSpy);
-		setUpResponseWithHeaderUsingNameAndValue(inputStreamresponseSpy, "someHeader",
-				"someHeaderValue");
+		HttpResponseSpy<InputStream> inputStreamResponse = new HttpResponseSpy<>();
+		createHttpResponseUsingBodyAndHeaders(inputStreamResponse, "someHeader", "someHeaderValue",
+				"someHeader", "someOtherHeaderValue", "someOtherHeader", "someOtherHeaderValue");
+		httpClientSpy.MRV.setDefaultReturnValuesSupplier("send", () -> inputStreamResponse);
 
 		httpHandler.setRequestMethod("GET");
 		httpHandler.getResponseCode();
 
-		Map<String, Object> headers = httpHandler.getResponseHeaders();
-		assertEquals(headers.size(), 1);
-		List<String> listOfHeaderValues = (List<String>) headers.get("someHeader");
-		assertEquals(listOfHeaderValues.get(0), "someHeaderValue");
+		Map<String, String> headers = httpHandler.getResponseHeaders();
+		assertEquals(headers.size(), 2);
+		assertEquals(headers.get("someHeader"), "someHeaderValue, someOtherHeaderValue");
+		assertEquals(headers.get("someOtherHeader"), "someOtherHeaderValue");
 	}
 
-	private void setUpResponseWithHeaderUsingNameAndValue(
-			HttpResponseSpy<InputStream> inputStreamresponseSpy, String headerName,
-			String headerValue) {
+	private void createHttpResponseUsingBodyAndHeaders(HttpResponseSpy<InputStream> body,
+			String... headerToBeIncluded) {
+		body.MRV.setDefaultReturnValuesSupplier("body", InputStreamSpy::new);
+
+		Builder newBuilder = createHttpHeaders(headerToBeIncluded);
+		HttpHeaders headers = newBuilder.build().headers();
+		body.MRV.setDefaultReturnValuesSupplier("headers", () -> headers);
+	}
+
+	private Builder createHttpHeaders(String... headerToBeIncluded) {
 		Builder newBuilder = HttpRequest.newBuilder();
 		newBuilder.uri(URI.create(url.toString()));
-		HttpHeaders headers = newBuilder.header(headerName, headerValue).build().headers();
-		inputStreamresponseSpy.MRV.setDefaultReturnValuesSupplier("headers", () -> headers);
+		addHeadersToBuilder(newBuilder, headerToBeIncluded);
+		return newBuilder;
+	}
+
+	private void addHeadersToBuilder(Builder newBuilder, String... headerToBeIncluded) {
+		for (int i = 0; i < headerToBeIncluded.length; i = i + 2) {
+			newBuilder.header(headerToBeIncluded[i], headerToBeIncluded[i + 1]);
+		}
 	}
 
 	@Test

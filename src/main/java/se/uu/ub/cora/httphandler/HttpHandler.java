@@ -106,7 +106,7 @@ public interface HttpHandler {
 	 * 
 	 * @return A map
 	 */
-	Map<String, Object> getResponseHeaders();
+	Map<String, String> getResponseHeaders();
 
 	/**
 	 * Get value of specific header field This does not trigger a request to be sent and must

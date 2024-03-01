@@ -32,11 +32,10 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 import se.uu.ub.cora.httphandler.HttpHandler;
 
@@ -173,7 +172,7 @@ public final class HttpHandlerImp implements HttpHandler {
 	}
 
 	@Override
-	public Map<String, Object> getResponseHeaders() {
+	public Map<String, String> getResponseHeaders() {
 		try {
 			return tryToGetResponseHeaders();
 		} catch (Exception e) {
@@ -181,13 +180,23 @@ public final class HttpHandlerImp implements HttpHandler {
 		}
 	}
 
-	private Map<String, Object> tryToGetResponseHeaders() {
+	private Map<String, String> tryToGetResponseHeaders() {
 		HttpHeaders responseHeaders = response.headers();
-		return responseHeaders.map().entrySet().stream().collect(putHeaderToMap());
+		Map<String, List<String>> headersMapList = responseHeaders.map();
+		return transformHeadersListBasedToStringBased(headersMapList);
 	}
 
-	private Collector<Entry<String, List<String>>, ?, Map<String, Object>> putHeaderToMap() {
-		return Collectors.toMap(Entry::getKey, Entry::getValue);
+	private Map<String, String> transformHeadersListBasedToStringBased(
+			Map<String, List<String>> headersMapList) {
+		Map<String, String> headersMapString = new HashMap<>();
+		for (Entry<String, List<String>> entry : headersMapList.entrySet()) {
+			headersMapString.put(entry.getKey(), createCommaSeparatedString(entry));
+		}
+		return headersMapString;
+	}
+
+	private String createCommaSeparatedString(Entry<String, List<String>> entry) {
+		return String.join(", ", entry.getValue());
 	}
 
 	@Override
