@@ -51,13 +51,13 @@ public class HttpMultiPartUploaderTest {
 		HttpURLConnectionSpy urlConnection = new HttpURLConnectionSpy(url);
 		HttpMultiPartUploader httpHandler = HttpMultiPartUploaderImp
 				.usingURLConnection(urlConnection);
-		httpHandler.addHeaderField("Accept", "application/vnd.uub.record+json");
+		httpHandler.addHeaderField("Accept", "application/vnd.cora.record+json");
 		httpHandler.addFormField("some", "value");
 		InputStream fakeStream = new ByteArrayInputStream(
 				"a string".getBytes(StandardCharsets.UTF_8));
 		httpHandler.addFilePart("file", "adele.png", fakeStream);
 		httpHandler.done();
-		// String expected = "Accept: application/vnd.uub.record+json2\n";
+		// String expected = "Accept: application/vnd.cora.record+json2\n";
 		String expected = "";
 
 		expected += "--xxxYYYxxx\n";
@@ -76,7 +76,7 @@ public class HttpMultiPartUploaderTest {
 		assertEquals(urlConnection.getOutputStreamAsString(), expected);
 
 		assertEquals(urlConnection.requestProperties.get("Accept"),
-				"application/vnd.uub.record+json");
+				"application/vnd.cora.record+json");
 	}
 
 	@Test
@@ -84,7 +84,7 @@ public class HttpMultiPartUploaderTest {
 		HttpURLConnectionSpy urlConnection = new HttpURLConnectionSpy(url);
 		HttpMultiPartUploader httpHandler = HttpMultiPartUploaderImp
 				.usingURLConnection(urlConnection);
-		httpHandler.addHeaderField("Accept", "application/vnd.uub.record+json");
+		httpHandler.addHeaderField("Accept", "application/vnd.cora.record+json");
 		httpHandler.addFormField("some", "value");
 		InputStream fakeStream = new ByteArrayInputStream(
 				"a string".getBytes(StandardCharsets.UTF_8));
@@ -141,7 +141,7 @@ public class HttpMultiPartUploaderTest {
 		HttpURLConnectionSpy urlConnection = new HttpURLConnectionSpy(url);
 		HttpMultiPartUploader httpHandler = HttpMultiPartUploaderImp
 				.usingURLConnection(urlConnection);
-		httpHandler.addHeaderField("Accept", "application/vnd.uub.record+json");
+		httpHandler.addHeaderField("Accept", "application/vnd.cora.record+json");
 		httpHandler.addFormField("some", "value");
 		InputStream fakeStream = new ByteArrayInputStream(
 				"a string".getBytes(StandardCharsets.UTF_8));
